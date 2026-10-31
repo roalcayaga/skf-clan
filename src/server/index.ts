@@ -479,45 +479,70 @@ app.route('/api/attendance', attendanceRoutes);
 app.route('/api/tournaments', tournamentsRoutes);
 app.route('/api/wow', wowRoutes);
 app.get('/api/skf/server-status', async (c) => {
-  const quakeHubUrl =
+  const liveUrl =
     'https://quakehub.net/api/v1/query/ql/161.153.199.38/27990';
 
-  try {
-    const response = await fetch(quakeHubUrl, {
-      headers: {
-        Accept: 'application/json',
-      },
-    });
+  const rosterUrl =
+    'https://quakehub.net/api/v1/server/ql/161.153.199.38/27990';
 
-    if (!response.ok) {
+  try {
+    const [liveResponse, rosterResponse] = await Promise.all([
+      fetch(liveUrl, {
+        headers: { Accept: 'application/json' },
+      }),
+      fetch(rosterUrl, {
+        headers: { Accept: 'application/json' },
+      }),
+    ]);
+
+    if (!liveResponse.ok) {
       return c.json(
         {
           online: false,
-          error: 'quakehub_unavailable',
-          status: response.status,
+          error: 'quakehub_live_unavailable',
+          status: liveResponse.status,
         },
         502
       );
     }
 
-    const data = (await response.json()) as {
+    const liveData = (await liveResponse.json()) as {
       online?: boolean;
-      server?: unknown;
+      server?: Record<string, unknown>;
       error?: string;
+    };
+
+    if (!liveData.online || !liveData.server) {
+      return c.json({
+        online: false,
+        error: liveData.error || 'server_offline',
+      });
+    }
+
+    let rosterData: Record<string, unknown> = {};
+
+    if (rosterResponse.ok) {
+      rosterData =
+        (await rosterResponse.json()) as Record<string, unknown>;
+    }
+
+    const liveServer = liveData.server;
+
+    const server = {
+      ...rosterData,
+      ...liveServer,
+
+      // /query da el estado inmediato,
+      // /server conserva los datos ricos.
+      roster: rosterData.roster ?? [],
+      match: rosterData.match ?? null,
     };
 
     c.header('Cache-Control', 'public, max-age=10');
 
-    if (!data.online || !data.server) {
-      return c.json({
-        online: false,
-        error: data.error || 'server_offline',
-      });
-    }
-
     return c.json({
       online: true,
-      server: data.server,
+      server,
     });
   } catch {
     return c.json(
