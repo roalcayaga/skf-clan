@@ -154,6 +154,180 @@ function TextModule({ config }: { config: Config }) {
  * (the stored html is never trusted), so even a hand-crafted API write can't
  * execute. See sanitizePageHtml for exactly what survives.
  */
+type QuakeHubPlayer = {
+  name: string;
+  kind?: string;
+  score?: number;
+  ping_ms?: number;
+};
+
+type QuakeHubServer = {
+  name?: string;
+  map?: string;
+  gametype?: string;
+  players?: number;
+  max_players?: number;
+  roster?: QuakeHubPlayer[];
+  connect?: {
+    address?: string;
+    command?: string;
+  };
+};
+
+function ServerStatusModule({ config }: { config: Config }) {
+  const title = str(config, 'title') || 'Servidor SkF';
+  const game = str(config, 'game') || 'ql';
+  const ip = str(config, 'ip') || '161.153.199.38';
+  const port = Number(config.port) || 27990;
+  const connectLabel =
+    str(config, 'connectLabel') || 'Conectar al servidor';
+
+  const address = `${ip}:${port}`;
+
+  const [server, setServer] = useState<QuakeHubServer | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [offline, setOffline] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadServer() {
+      try {
+        const response = await fetch(
+          `https://quakehub.net/api/v1/server/${game}/${ip}/${port}`
+        );
+
+        if (!response.ok) {
+          throw new Error(`Server status ${response.status}`);
+        }
+
+        const data = (await response.json()) as QuakeHubServer;
+
+        if (!active) return;
+
+        setServer(data);
+        setOffline(false);
+      } catch {
+        if (!active) return;
+
+        setServer(null);
+        setOffline(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadServer();
+
+    const timer = window.setInterval(loadServer, 90_000);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [game, ip, port]);
+
+  async function copyAddress() {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  const players = server?.players ?? 0;
+  const maxPlayers = server?.max_players ?? 16;
+  const roster =
+    server?.roster?.filter((player) => player.kind !== 'bot') ?? [];
+
+  return (
+    <section className="module skf-server-status">
+      <div className="skf-server-card">
+        <div className="skf-server-topline">
+          <div>
+            <div className="skf-server-kicker">SHAOLIN KUNG FU</div>
+            <h3>{title}</h3>
+          </div>
+
+          <div
+            className={`skf-server-state ${
+              offline ? 'is-offline' : 'is-online'
+            }`}
+          >
+            <span className="skf-server-dot" />
+            {loading ? 'CONSULTANDO' : offline ? 'OFFLINE' : 'ONLINE'}
+          </div>
+        </div>
+
+        <div className="skf-server-main">
+          <div className="skf-server-stat">
+            <span>MAPA</span>
+            <strong>{server?.map || '—'}</strong>
+          </div>
+
+          <div className="skf-server-stat">
+            <span>MODO</span>
+            <strong>{server?.gametype || 'Clan Arena'}</strong>
+          </div>
+
+          <div className="skf-server-stat">
+            <span>JUGADORES</span>
+            <strong>
+              {players} / {maxPlayers}
+            </strong>
+          </div>
+        </div>
+
+        <div className="skf-server-address">
+          <code>{server?.connect?.address || address}</code>
+
+          <button
+            type="button"
+            className="skf-server-copy"
+            onClick={copyAddress}
+          >
+            {copied ? 'COPIADO' : 'COPIAR IP'}
+          </button>
+        </div>
+
+        {roster.length > 0 && (
+          <div className="skf-server-roster">
+            <span>EN EL SERVER</span>
+
+            <div className="skf-server-players">
+              {roster.map((player, index) => (
+                <span key={`${player.name}-${index}`}>
+                  {player.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="skf-server-actions">
+          <a
+            className="skf-server-connect"
+            href={`steam://connect/${server?.connect?.address || address}`}
+          >
+            {connectLabel}
+          </a>
+
+          <a
+            className="skf-server-quakehub"
+            href={`https://quakehub.net/server/${game}/${ip}/${port}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Ver en QuakeHub
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
 function HtmlModule({ config }: { config: Config }) {
   const html = sanitizePageHtml(str(config, 'html'));
   if (!html.trim()) return null;
@@ -1094,4 +1268,5 @@ export const MODULE_RENDERERS: Record<ModuleType, (props: { config: Config }) =>
   training: TrainingModule,
   leaderboard: LeaderboardModule,
   tournaments: TournamentsModule,
+  serverstatus: ServerStatusModule,
 };

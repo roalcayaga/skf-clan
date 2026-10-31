@@ -31,6 +31,7 @@ export type ModuleType =
   | 'games'
   | 'training'
   | 'leaderboard'
+  | 'serverstatus'
   | 'tournaments';
 
 export interface LayoutModule {
@@ -236,6 +237,18 @@ export const MODULE_SPECS: readonly ModuleSpec[] = [
     description: 'Most active members by events attended (recent or all-time).',
     defaultConfig: { title: 'Most Active', limit: 10, window: 'recent' },
   },
+  {
+  type: 'serverstatus',
+  label: 'SkF Server Status',
+  description: 'Live status, map and players for the SkF Quake Live server.',
+  defaultConfig: {
+    title: 'Servidor SkF',
+    game: 'ql',
+    ip: '161.153.199.38',
+    port: 27990,
+    connectLabel: 'Conectar al servidor',
+  },
+},
   {
     type: 'tournaments',
     label: 'Tournaments',

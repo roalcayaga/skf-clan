@@ -8044,3 +8044,246 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
   color: var(--class-color);
   font-weight: 600;
 }
+/* =========================
+   SkF — Quake Live Server
+   ========================= */
+
+.skf-server-status {
+  width: 100%;
+}
+
+.skf-server-card {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid rgba(0, 217, 245, 0.28);
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(0, 217, 245, 0.055),
+      transparent 45%
+    ),
+    linear-gradient(
+      315deg,
+      rgba(255, 42, 42, 0.05),
+      transparent 40%
+    ),
+    #080d0f;
+}
+
+.skf-server-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 2px;
+  background: #00d9f5;
+}
+
+.skf-server-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18%;
+  height: 2px;
+  background: #ff2a2a;
+}
+
+.skf-server-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.skf-server-kicker {
+  margin-bottom: 5px;
+  color: #00d9f5;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.skf-server-card h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.skf-server-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border: 1px solid rgba(0, 217, 245, 0.28);
+  border-radius: 999px;
+  color: #00d9f5;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.skf-server-state.is-offline {
+  border-color: rgba(255, 42, 42, 0.35);
+  color: #ff2a2a;
+}
+
+.skf-server-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 9px currentColor;
+}
+
+.skf-server-main {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.skf-server-stat {
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.skf-server-stat span {
+  display: block;
+  margin-bottom: 5px;
+  color: #819399;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+
+.skf-server-stat strong {
+  color: #f2f7f8;
+  font-size: 16px;
+}
+
+.skf-server-address {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 11px 14px;
+  border-left: 2px solid #ff2a2a;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.skf-server-address code {
+  color: #f2f7f8;
+  font-size: 13px;
+}
+
+.skf-server-copy {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #00d9f5;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.skf-server-roster {
+  margin-top: 18px;
+}
+
+.skf-server-roster > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #819399;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+
+.skf-server-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.skf-server-players span {
+  padding: 5px 9px;
+  border: 1px solid rgba(0, 217, 245, 0.2);
+  border-radius: 999px;
+  background: rgba(0, 217, 245, 0.05);
+  color: #f2f7f8;
+  font-size: 12px;
+}
+
+.skf-server-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.skf-server-connect {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 7px;
+  background: #00d9f5;
+  color: #031013;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.skf-server-connect:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
+}
+
+.skf-server-quakehub {
+  color: #819399;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.skf-server-quakehub:hover {
+  color: #f2f7f8;
+}
+
+@media (max-width: 700px) {
+  .skf-server-card {
+    padding: 18px;
+  }
+
+  .skf-server-topline {
+    flex-direction: column;
+  }
+
+  .skf-server-main {
+    grid-template-columns: 1fr;
+  }
+
+  .skf-server-address {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .skf-server-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .skf-server-connect {
+    width: 100%;
+  }
+}
