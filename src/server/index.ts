@@ -480,7 +480,7 @@ app.route('/api/tournaments', tournamentsRoutes);
 app.route('/api/wow', wowRoutes);
 app.get('/api/skf/server-status', async (c) => {
   const quakeHubUrl =
-    'https://quakehub.net/api/v1/server/ql/161.153.199.38/27990';
+    'https://quakehub.net/api/v1/query/ql/161.153.199.38/27990';
 
   try {
     const response = await fetch(quakeHubUrl, {
@@ -500,13 +500,24 @@ app.get('/api/skf/server-status', async (c) => {
       );
     }
 
-    const server = await response.json();
+    const data = (await response.json()) as {
+      online?: boolean;
+      server?: unknown;
+      error?: string;
+    };
 
-    c.header('Cache-Control', 'public, max-age=30');
+    c.header('Cache-Control', 'public, max-age=10');
+
+    if (!data.online || !data.server) {
+      return c.json({
+        online: false,
+        error: data.error || 'server_offline',
+      });
+    }
 
     return c.json({
       online: true,
-      server,
+      server: data.server,
     });
   } catch {
     return c.json(

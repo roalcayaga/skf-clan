@@ -240,7 +240,7 @@ function ServerStatusModule({ config }: { config: Config }) {
 
     void loadServer();
 
-    const timer = window.setInterval(loadServer, 60_000);
+    const timer = window.setInterval(loadServer, 30_000);
 
     return () => {
       active = false;
