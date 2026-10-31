@@ -63,20 +63,21 @@ export default function Roster() {
 
   return (
     <section className="panel">
-      <header className="panel-head roster-head">
-        <h2>Roster</h2>
-        {canFullList && (
-          <MorphingSegments
-            ariaLabel="Roster view"
-            value={view}
-            onChange={setView}
-            options={[
-              { key: 'tree', label: 'Leadership' },
-              { key: 'list', label: 'All members' },
-            ]}
-          />
-        )}
-      </header>
+<header className="panel-head roster-head">
+  <h2>Guerreros del Dragón</h2>
+
+  {canFullList && (
+    <MorphingSegments
+      ariaLabel="Vista del roster"
+      value={view}
+      onChange={setView}
+      options={[
+        { key: 'tree', label: 'Jerarquía' },
+        { key: 'list', label: 'Todos' },
+      ]}
+    />
+  )}
+</header>
 
       {view === 'tree' ? <LeadershipTree canOpenProfiles={canFullList} /> : <MemberList />}
     </section>
@@ -153,22 +154,42 @@ function MemberList() {
         <div className="loading">Loading roster…</div>
       ) : (
         <>
-          <ul className="roster">
-            {members.map((m) => (
-              <li key={m.id}>
-                <Link to={`/members/${m.id}`} className="roster-link">
-                  <img className="avatar" src={memberAvatar(m, 64)} alt="" width={40} height={40} loading="lazy" />
-                  <div>
-                    <div className="name">{memberName(m)}</div>
-                    <div className="muted small">
-                      {m.rankName ?? 'Unranked'} · joined {new Date(m.joinedAt * 1000).toLocaleDateString()}
-                    </div>
-                  </div>
-                  {m.status !== 'active' && <span className="status-chip">{m.status}</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <ul className="roster skf-roster">
+  {members.map((m) => (
+    <li key={m.id} className="skf-roster-item">
+      <Link to={`/members/${m.id}`} className="roster-link skf-roster-link">
+        <img
+          className="avatar skf-roster-avatar"
+          src={memberAvatar(m, 64)}
+          alt=""
+          width={48}
+          height={48}
+          loading="lazy"
+        />
+
+        <div className="skf-roster-copy">
+          <div className="name skf-roster-name">
+            {memberName(m)}
+          </div>
+
+          <div className="skf-roster-meta">
+            <span className="skf-rank-chip">
+              {m.rankName ?? 'Sin rango'}
+            </span>
+
+            <span className="skf-roster-joined">
+              Desde {new Date(m.joinedAt * 1000).toLocaleDateString()}
+            </span>
+          </div>
+        </div>
+
+        {m.status !== 'active' && (
+          <span className="status-chip">{m.status}</span>
+        )}
+      </Link>
+    </li>
+  ))}
+</ul>
 
           {hasMore && (
             <div className="roster-more">

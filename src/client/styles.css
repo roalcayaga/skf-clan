@@ -8482,3 +8482,111 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
   color: #819399;
   font-size: 12px;
 }
+/* =========================
+   SkF — Roster
+   ========================= */
+
+.skf-roster {
+  display: grid;
+  gap: 10px;
+}
+
+.skf-roster-item {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(0, 217, 245, 0.14);
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 217, 245, 0.035),
+      transparent 45%
+    ),
+    rgba(255, 255, 255, 0.018);
+}
+
+.skf-roster-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: #00d9f5;
+}
+
+.skf-roster-item:nth-child(2n)::before {
+  background: #ff2a2a;
+}
+
+.skf-roster-link {
+  min-height: 72px;
+  padding: 11px 14px 11px 16px;
+}
+
+.skf-roster-link:hover {
+  background: rgba(0, 217, 245, 0.025);
+  text-decoration: none;
+}
+
+.skf-roster-avatar {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.skf-roster-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.skf-roster-name {
+  color: #f2f7f8;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.skf-roster-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+}
+
+.skf-rank-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(0, 217, 245, 0.22);
+  border-radius: 999px;
+  background: rgba(0, 217, 245, 0.05);
+  color: #00d9f5;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.skf-roster-joined {
+  color: #819399;
+  font-size: 11px;
+}
+
+@media (max-width: 700px) {
+  .skf-roster-link {
+    min-height: 66px;
+  }
+
+  .skf-roster-avatar {
+    width: 42px;
+    height: 42px;
+  }
+
+  .skf-roster-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
