@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import * as s from '../../db/schema';
 import type { AppContext } from '../env';
 import { db, requireAuth, requireUser, requirePermission } from '../middleware/auth';
@@ -79,7 +79,56 @@ members.get('/', requirePermission('roster.view'), async (c) => {
   const totalRow = await database.select({ n: sql<number>`count(*)` }).from(s.users);
   const total = Number(totalRow[0]?.n ?? 0);
 
-  return c.json({ members: rows, total, limit, offset });
+const memberIds = rows.map((row) => row.id);
+
+const medalRows = memberIds.length
+  ? await database
+      .select({
+        userId: s.memberMedals.userId,
+        id: s.medals.id,
+        name: s.medals.name,
+        imageUrl: s.medals.imageUrl,
+      })
+      .from(s.memberMedals)
+      .innerJoin(
+        s.medals,
+        eq(s.memberMedals.medalId, s.medals.id)
+      )
+      .where(inArray(s.memberMedals.userId, memberIds))
+  : [];
+
+const medalsByUser = new Map<
+  number,
+  Array<{
+    id: number;
+    name: string;
+    imageUrl: string | null;
+  }>
+>();
+
+for (const medal of medalRows) {
+  const current = medalsByUser.get(medal.userId) ?? [];
+
+  current.push({
+    id: medal.id,
+    name: medal.name,
+    imageUrl: medal.imageUrl,
+  });
+
+  medalsByUser.set(medal.userId, current);
+}
+
+const membersWithMedals = rows.map((row) => ({
+  ...row,
+  medals: medalsByUser.get(row.id) ?? [],
+}));
+
+return c.json({
+  members: membersWithMedals,
+  total,
+  limit,
+  offset,
+});
 });
 
 /**

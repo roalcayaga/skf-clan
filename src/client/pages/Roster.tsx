@@ -28,6 +28,11 @@ interface Member {
   status: string;
   joinedAt: number;
   rankName: string | null;
+  medals: Array<{
+  id: number;
+  name: string;
+  imageUrl: string | null;
+}>;
 }
 
 type SortField = 'rank' | 'name';
@@ -181,6 +186,24 @@ function MemberList() {
               Desde {new Date(m.joinedAt * 1000).toLocaleDateString()}
             </span>
           </div>
+          {m.medals.length > 0 && (
+  <div className="skf-roster-medals">
+    {m.medals.map((medal) => (
+      <span key={medal.id} className="skf-medal-chip">
+        {medal.imageUrl && (
+          <img
+            src={medal.imageUrl}
+            alt=""
+            width={16}
+            height={16}
+            loading="lazy"
+          />
+        )}
+        {medal.name}
+      </span>
+    ))}
+  </div>
+)}
         </div>
 
         {m.status !== 'active' && (
