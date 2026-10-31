@@ -8426,3 +8426,59 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
     padding: 9px 10px;
   }
 }
+.skf-score-center {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skf-match-clock {
+  color: #f2f7f8;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.skf-server-waiting {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 18px 20px;
+  border: 1px solid rgba(0, 217, 245, 0.16);
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 217, 245, 0.06),
+      transparent 60%
+    ),
+    rgba(0, 0, 0, 0.18);
+}
+
+.skf-server-waiting-dot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #00d9f5;
+  box-shadow: 0 0 12px #00d9f5;
+}
+
+.skf-server-waiting div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.skf-server-waiting strong {
+  color: #f2f7f8;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.skf-server-waiting div > span {
+  color: #819399;
+  font-size: 12px;
+}

@@ -273,9 +273,19 @@ function ServerStatusModule({ config }: { config: Config }) {
       (player) => player.kind === 'spectator'
     ) ?? [];
 
-  const redScore = server?.match?.red_score;
-  const blueScore = server?.match?.blue_score;
-  const clock = server?.match?.clock;
+const redScore = server?.match?.red_score;
+const blueScore = server?.match?.blue_score;
+const clock = server?.match?.clock;
+
+const hasActiveMatch = Boolean(
+  server?.match &&
+    (
+      server.match.state ||
+      redScore != null ||
+      blueScore != null ||
+      clock
+    )
+);
 
   const connectAddress = server?.connect?.address || address;
   const connectUrl =
@@ -324,25 +334,37 @@ function ServerStatusModule({ config }: { config: Config }) {
             </strong>
           </div>
 
-          <div className="skf-server-stat">
-            <span>RELOJ</span>
-            <strong>{clock || '—'}</strong>
-          </div>
+          
         </div>
 
-        <div className="skf-match-scoreboard">
-          <div className="skf-team-score skf-team-red">
-            <span>RED</span>
-            <strong>{redScore ?? '—'}</strong>
-          </div>
+        {hasActiveMatch ? (
+  <div className="skf-match-scoreboard">
+    <div className="skf-team-score skf-team-red">
+      <span>RED</span>
+      <strong>{redScore ?? 0}</strong>
+    </div>
 
-          <div className="skf-score-versus">VS</div>
+    <div className="skf-score-center">
+      <div className="skf-score-versus">VS</div>
+      {clock && (
+        <div className="skf-match-clock">{clock}</div>
+      )}
+    </div>
 
-          <div className="skf-team-score skf-team-blue">
-            <strong>{blueScore ?? '—'}</strong>
-            <span>BLUE</span>
-          </div>
-        </div>
+    <div className="skf-team-score skf-team-blue">
+      <strong>{blueScore ?? 0}</strong>
+      <span>BLUE</span>
+    </div>
+  </div>
+) : (
+  <div className="skf-server-waiting">
+    <span className="skf-server-waiting-dot" />
+    <div>
+      <strong>ESPERANDO GUERREROS</strong>
+      <span>El servidor está online y listo para jugar.</span>
+    </div>
+  </div>
+)}
 
         {activePlayers.length > 0 && (
           <div className="skf-live-roster">
