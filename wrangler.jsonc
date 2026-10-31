@@ -1,0 +1,82 @@
+{
+  // ────────────────────────────────────────────────────────────────────────
+  // GENERIC BUYER TEMPLATE — this is the config the "Deploy to Cloudflare"
+  // button reads. A fresh install provisions its OWN D1 + R2, runs on a
+  // *.workers.dev URL until the owner attaches a custom domain, and gets all its
+  // Discord + site identity from the first-run setup wizard (config is
+  // DB-over-env, see src/server/config.ts). It has NO mustr.gg-specific values.
+  //
+  // mustr.gg (the showcase) deploys from wrangler.mustr.jsonc instead:
+  //     npx wrangler deploy -c wrangler.mustr.jsonc
+  // The worker name here ("mustr") deliberately differs from mustr.gg's
+  // ("clantek") so a stray `wrangler deploy` can never clobber the live site.
+  // ────────────────────────────────────────────────────────────────────────
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "skf-clan",
+  "main": "src/server/index.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // A fresh install is reachable at <name>.<your-subdomain>.workers.dev right
+  // away. Attach your own domain later in the Cloudflare dashboard:
+  // Workers & Pages → your worker → Settings → Domains & Routes → Add domain.
+  "workers_dev": true,
+
+  // React admin builds to dist/client, served as static assets by the same
+  // Worker that serves the API. run_worker_first routes every request through
+  // the Worker first (it serves /api + /media and rewrites <head> for SEO),
+  // then hands the rest to ASSETS with SPA fallback. See wrangler.mustr.jsonc
+  // for the full rationale.
+  "assets": {
+    "directory": "./dist/client",
+    "not_found_handling": "single-page-application",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+
+  // The Deploy-to-Cloudflare button CREATES a new D1 database and R2 bucket for
+  // this install and rewrites the id/names during setup. The placeholder id is
+  // replaced automatically — it exists only so the config is well-formed. The
+  // setup wizard builds the schema on first run (src/server/setup/schema.ts), so
+  // no manual migration step is needed.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "skf-mustr",
+      "database_id": "5cc3ed95-c702-42b3-af92-3884039d010e",
+      "migrations_dir": "drizzle"
+    }
+  ],
+
+  // Media storage (medal art, avatars, uploaded images). Served back at /media/*.
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "skf-mustr-media","preview_bucket_name": "skf-mustr-media"
+    }
+  ],
+
+  // Durable Object for the optional Discord chat-activity heatmap
+  // (src/server/discord/gateway.ts). Idle until enabled in Attendance settings.
+  "durable_objects": {
+    "bindings": [{ "name": "DISCORD_GATEWAY", "class_name": "DiscordGateway" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DiscordGateway"] }],
+
+  // Non-secret defaults only. Everything Discord (client id, guild, public key)
+  // and your canonical URL are entered in the setup wizard and stored in the
+  // database, so they stay blank here. SETUP_TOKEN and SESSION_SECRET are
+  // prompted at deploy time — see .dev.vars.example.
+  "vars": {
+    "SITE_NAME": "Shaolin Kung Fu"
+  },
+
+  // Discord role-reconcile sweep (*/5) + tenure-medal sweep (hourly, minute 7).
+  "triggers": {
+    "crons": ["*/5 * * * *", "7 * * * *", "2-59/5 * * * *"]
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

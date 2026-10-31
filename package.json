@@ -1,0 +1,83 @@
+{
+  "name": "skf-clan",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Clan management system — Cloudflare Workers + D1 + React. A rewrite of the 2003 PHP original.",
+  "scripts": {
+    "dev": "concurrently -n vite,worker -c cyan,magenta \"vite\" \"wrangler dev\"",
+    "build": "npm run db:bundle && tsc --noEmit && vite build",
+    "deploy": "npm run build && wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "node --import tsx --test \"test/**/*.test.ts\"",
+    "db:bundle": "node scripts/bundle-migrations.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply clantek --local",
+    "db:migrate:remote": "wrangler d1 migrations apply clantek --remote",
+    "db:seed:local": "wrangler d1 execute clantek --local --file=./src/db/seed.sql",
+    "db:seed:remote": "wrangler d1 execute clantek --remote --file=./src/db/seed.sql",
+    "db:studio": "drizzle-kit studio",
+    "discord:register": "tsx scripts/register-commands.ts",
+    "doctor": "tsx scripts/doctor.ts",
+    "licenses": "node scripts/generate-licenses.mjs",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@tiptap/pm": "^3.29.2",
+    "@tiptap/react": "^3.29.2",
+    "@tiptap/starter-kit": "^3.29.2",
+    "chart.js": "^4.6.1",
+    "dompurify": "^3.4.13",
+    "drizzle-orm": "^0.45.2",
+    "gifenc": "^1.0.3",
+    "hono": "^4.12.34",
+    "lucide": "^1.28.0",
+    "morphicons": "^1.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-photo-album": "^3.6.1",
+    "react-router-dom": "^7.1.0",
+    "yet-another-react-lightbox": "^3.32.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260801.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.1.0",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vite": "^7.0.0",
+    "wrangler": "^4.118.0"
+  },
+  "allowScripts": {
+    "esbuild@0.18.20": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.1": true,
+    "workerd@1.20260730.1": true
+  },
+  "cloudflare": {
+    "label": "mustr — community tools for gaming orgs",
+    "products": [
+      "Workers",
+      "D1",
+      "R2"
+    ],
+    "bindings": {
+      "SETUP_TOKEN": {
+        "description": "A password **you invent** (letters and numbers only — avoid `+ / =`) that unlocks the one-time setup wizard the first time your site loads, so nobody can claim your site before you do. You paste it once, then you're done. Generate a safe one with `openssl rand -hex 24`."
+      },
+      "SESSION_SECRET": {
+        "description": "A long random string (letters and numbers) used to sign login/session cookies — keep it secret. Generate one with `openssl rand -hex 32`."
+      },
+      "DB": {
+        "description": "Your site's database (Cloudflare D1). Created automatically — nothing to enter. The schema builds itself on first run."
+      },
+      "MEDIA": {
+        "description": "File storage for uploaded images (Cloudflare R2). Created automatically — nothing to enter."
+      }
+    }
+  }
+}
