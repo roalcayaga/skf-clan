@@ -156,9 +156,18 @@ function TextModule({ config }: { config: Config }) {
  */
 type QuakeHubPlayer = {
   name: string;
-  kind?: string;
+  kind?: 'player' | 'bot' | 'spectator';
   score?: number;
   ping_ms?: number;
+  time_s?: number;
+};
+
+type QuakeHubMatch = {
+  state?: string | null;
+  red_score?: number | null;
+  blue_score?: number | null;
+  round_limit?: number | null;
+  clock?: string | null;
 };
 
 type QuakeHubServer = {
@@ -166,17 +175,26 @@ type QuakeHubServer = {
   map?: string;
   gametype?: string;
   players?: number;
+  bots?: number;
   max_players?: number;
+  updated_at?: number;
+  match?: QuakeHubMatch | null;
   roster?: QuakeHubPlayer[];
   connect?: {
     address?: string;
-    command?: string;
+    url?: string | null;
+    command?: string | null;
   };
+};
+
+type ServerStatusPayload = {
+  online: boolean;
+  server?: QuakeHubServer;
+  error?: string;
 };
 
 function ServerStatusModule({ config }: { config: Config }) {
   const title = str(config, 'title') || 'Servidor SkF';
-  const game = str(config, 'game') || 'ql';
   const ip = str(config, 'ip') || '161.153.199.38';
   const port = Number(config.port) || 27990;
   const connectLabel =
@@ -194,19 +212,21 @@ function ServerStatusModule({ config }: { config: Config }) {
 
     async function loadServer() {
       try {
-        const response = await fetch(
-          `https://quakehub.net/api/v1/server/${game}/${ip}/${port}`
-        );
+        const response = await fetch('/api/skf/server-status', {
+          headers: {
+            Accept: 'application/json',
+          },
+        });
 
-        if (!response.ok) {
-          throw new Error(`Server status ${response.status}`);
+        const payload = (await response.json()) as ServerStatusPayload;
+
+        if (!response.ok || !payload.online || !payload.server) {
+          throw new Error(payload.error || 'server_status_failed');
         }
-
-        const data = (await response.json()) as QuakeHubServer;
 
         if (!active) return;
 
-        setServer(data);
+        setServer(payload.server);
         setOffline(false);
       } catch {
         if (!active) return;
@@ -220,17 +240,19 @@ function ServerStatusModule({ config }: { config: Config }) {
 
     void loadServer();
 
-    const timer = window.setInterval(loadServer, 90_000);
+    const timer = window.setInterval(loadServer, 60_000);
 
     return () => {
       active = false;
       window.clearInterval(timer);
     };
-  }, [game, ip, port]);
+  }, []);
 
   async function copyAddress() {
     try {
-      await navigator.clipboard.writeText(address);
+      await navigator.clipboard.writeText(
+        server?.connect?.address || address
+      );
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -240,15 +262,33 @@ function ServerStatusModule({ config }: { config: Config }) {
 
   const players = server?.players ?? 0;
   const maxPlayers = server?.max_players ?? 16;
-  const roster =
-    server?.roster?.filter((player) => player.kind !== 'bot') ?? [];
+
+  const activePlayers =
+    server?.roster
+      ?.filter((player) => player.kind === 'player')
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0)) ?? [];
+
+  const spectators =
+    server?.roster?.filter(
+      (player) => player.kind === 'spectator'
+    ) ?? [];
+
+  const redScore = server?.match?.red_score;
+  const blueScore = server?.match?.blue_score;
+  const clock = server?.match?.clock;
+
+  const connectAddress = server?.connect?.address || address;
+  const connectUrl =
+    server?.connect?.url || `steam://connect/${connectAddress}`;
 
   return (
     <section className="module skf-server-status">
       <div className="skf-server-card">
         <div className="skf-server-topline">
           <div>
-            <div className="skf-server-kicker">SHAOLIN KUNG FU</div>
+            <div className="skf-server-kicker">
+              SHAOLIN KUNG FU
+            </div>
             <h3>{title}</h3>
           </div>
 
@@ -258,7 +298,11 @@ function ServerStatusModule({ config }: { config: Config }) {
             }`}
           >
             <span className="skf-server-dot" />
-            {loading ? 'CONSULTANDO' : offline ? 'OFFLINE' : 'ONLINE'}
+            {loading
+              ? 'CONSULTANDO'
+              : offline
+                ? 'OFFLINE'
+                : 'ONLINE'}
           </div>
         </div>
 
@@ -279,10 +323,69 @@ function ServerStatusModule({ config }: { config: Config }) {
               {players} / {maxPlayers}
             </strong>
           </div>
+
+          <div className="skf-server-stat">
+            <span>RELOJ</span>
+            <strong>{clock || '—'}</strong>
+          </div>
         </div>
 
+        <div className="skf-match-scoreboard">
+          <div className="skf-team-score skf-team-red">
+            <span>RED</span>
+            <strong>{redScore ?? '—'}</strong>
+          </div>
+
+          <div className="skf-score-versus">VS</div>
+
+          <div className="skf-team-score skf-team-blue">
+            <strong>{blueScore ?? '—'}</strong>
+            <span>BLUE</span>
+          </div>
+        </div>
+
+        {activePlayers.length > 0 && (
+          <div className="skf-live-roster">
+            <div className="skf-live-roster-title">
+              JUGADORES EN EL SERVER
+            </div>
+
+            <div className="skf-player-table">
+              <div className="skf-player-row skf-player-header">
+                <span>JUGADOR</span>
+                <span>SCORE</span>
+                <span>PING</span>
+              </div>
+
+              {activePlayers.map((player, index) => (
+                <div
+                  className="skf-player-row"
+                  key={`${player.name}-${index}`}
+                >
+                  <strong>{player.name}</strong>
+                  <span>{player.score ?? '—'}</span>
+                  <span>
+                    {player.ping_ms != null
+                      ? `${player.ping_ms} ms`
+                      : '—'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {spectators.length > 0 && (
+          <div className="skf-spectators">
+            <span>ESPECTADORES</span>
+            <strong>
+              {spectators.map((player) => player.name).join(' · ')}
+            </strong>
+          </div>
+        )}
+
         <div className="skf-server-address">
-          <code>{server?.connect?.address || address}</code>
+          <code>{connectAddress}</code>
 
           <button
             type="button"
@@ -293,31 +396,17 @@ function ServerStatusModule({ config }: { config: Config }) {
           </button>
         </div>
 
-        {roster.length > 0 && (
-          <div className="skf-server-roster">
-            <span>EN EL SERVER</span>
-
-            <div className="skf-server-players">
-              {roster.map((player, index) => (
-                <span key={`${player.name}-${index}`}>
-                  {player.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="skf-server-actions">
           <a
             className="skf-server-connect"
-            href={`steam://connect/${server?.connect?.address || address}`}
+            href={connectUrl}
           >
             {connectLabel}
           </a>
 
           <a
             className="skf-server-quakehub"
-            href={`https://quakehub.net/server/${game}/${ip}/${port}`}
+            href="https://quakehub.net/server/ql/161.153.199.38/27990"
             target="_blank"
             rel="noopener noreferrer"
           >

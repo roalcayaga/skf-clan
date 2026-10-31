@@ -478,6 +478,47 @@ app.route('/api/snapshots', snapshotsRoutes);
 app.route('/api/attendance', attendanceRoutes);
 app.route('/api/tournaments', tournamentsRoutes);
 app.route('/api/wow', wowRoutes);
+app.get('/api/skf/server-status', async (c) => {
+  const quakeHubUrl =
+    'https://quakehub.net/api/v1/server/ql/161.153.199.38/27990';
+
+  try {
+    const response = await fetch(quakeHubUrl, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return c.json(
+        {
+          online: false,
+          error: 'quakehub_unavailable',
+          status: response.status,
+        },
+        502
+      );
+    }
+
+    const server = await response.json();
+
+    c.header('Cache-Control', 'public, max-age=30');
+
+    return c.json({
+      online: true,
+      server,
+    });
+  } catch {
+    return c.json(
+      {
+        online: false,
+        error: 'server_status_failed',
+      },
+      502
+    );
+  }
+});
+
 
 app.get('/api/health', (c) => c.json({ ok: true, service: 'mustr' }));
 
