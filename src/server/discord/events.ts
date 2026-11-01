@@ -100,19 +100,56 @@ function eventEmbed(state: EventState, siteUrl?: string, sigilPng?: string): Emb
       : undefined,
   ].filter(Boolean) as string[];
 
-  const fields: NonNullable<Embed['fields']> = [];
-  for (const r of state.roles) {
-    const names = state.signups.filter((su) => su.roleId === r.id).map((su) => su.name);
-    fields.push({
-      name: `${r.emoji ? r.emoji + ' ' : ''}${r.name} — ${r.count}${r.capacity != null ? `/${r.capacity}` : ''}`.slice(0, 256),
-      value: (names.length ? names.join(', ') : '—').slice(0, 1024),
-      inline: true,
-    });
-  }
-  const noRole = state.signups.filter((su) => su.roleId === null).map((su) => su.name);
-  if (noRole.length) {
-    fields.push({ name: `Attending — ${noRole.length}`, value: noRole.join(', ').slice(0, 1024), inline: true });
-  }
+const fields: NonNullable<Embed['fields']> = [];
+
+// Si el evento usa roles, solo mostramos como inscritos a quienes están disponibles.
+for (const r of state.roles) {
+  const names = state.signups
+    .filter((su) => su.roleId === r.id && su.availability === 'available')
+    .map((su) => su.name);
+
+  fields.push({
+    name: `${r.emoji ? r.emoji + ' ' : ''}${r.name} — ${names.length}${r.capacity != null ? `/${r.capacity}` : ''}`.slice(0, 256),
+    value: (names.length ? names.join(', ') : '—').slice(0, 1024),
+    inline: true,
+  });
+}
+
+const available = state.signups
+  .filter((su) => su.roleId === null && su.availability === 'available')
+  .map((su) => su.name);
+
+const tentative = state.signups
+  .filter((su) => su.availability === 'tentative')
+  .map((su) => su.name);
+
+const unavailable = state.signups
+  .filter((su) => su.availability === 'unavailable')
+  .map((su) => su.name);
+
+if (available.length) {
+  fields.push({
+    name: `🟢 Disponibles — ${available.length}`,
+    value: available.join(', ').slice(0, 1024),
+    inline: true,
+  });
+}
+
+if (tentative.length) {
+  fields.push({
+    name: `🟡 Por confirmar — ${tentative.length}`,
+    value: tentative.join(', ').slice(0, 1024),
+    inline: true,
+  });
+}
+
+if (unavailable.length) {
+  fields.push({
+    name: `🔴 No pueden — ${unavailable.length}`,
+    value: unavailable.join(', ').slice(0, 1024),
+    inline: true,
+  });
+}
 
   const embed: Embed = {
     color: 0x5865f2,
@@ -155,13 +192,36 @@ function eventComponents(state: EventState, checkinEnabled: boolean): ActionRow[
     rows.push({ type: 1, components: roleButtons.slice(i, i + 5) });
   }
 
-  const controls: ActionRow['components'] = [
-    { type: 2, style: 1, label: 'Attending', custom_id: `evt:role:${eid}:none` },
-  ];
-  if (checkinEnabled) {
-    controls.push({ type: 2, style: 3, label: "I'm here", emoji: { name: '✅' }, custom_id: `evt:checkin:${eid}` });
-  }
-  controls.push({ type: 2, style: 4, label: 'Withdraw', custom_id: `evt:withdraw:${eid}` });
+const controls: ActionRow['components'] = [
+  {
+    type: 2,
+    style: 3,
+    label: 'Disponible',
+    custom_id: `evt:availability:${eid}:available`,
+  },
+  {
+    type: 2,
+    style: 2,
+    label: 'Por confirmar',
+    custom_id: `evt:availability:${eid}:tentative`,
+  },
+  {
+    type: 2,
+    style: 4,
+    label: 'No puedo',
+    custom_id: `evt:availability:${eid}:unavailable`,
+  },
+];
+
+if (checkinEnabled) {
+  controls.push({
+    type: 2,
+    style: 1,
+    label: "I'm here",
+    emoji: { name: '✅' },
+    custom_id: `evt:checkin:${eid}`,
+  });
+}
   rows.push({ type: 1, components: controls });
   return rows;
 }

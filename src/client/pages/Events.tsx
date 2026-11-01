@@ -37,7 +37,10 @@ interface EventItem {
   shareAlliance: boolean;
   roles: RoleState[];
   signupCount: number;
-  mySignup: { roleId: number | null } | null;
+  mySignup: {
+  roleId: number | null;
+  availability: 'available' | 'tentative' | 'unavailable';
+} | null;
   attended: boolean;
 }
 interface GameOption {
@@ -140,17 +143,28 @@ export default function Events() {
       return 'Event cancelled and removed from Discord.';
     });
 
-  const signup = (eventId: number, roleId: number | null) =>
-    run(async () => {
-      await api.post(`/events/${eventId}/signup`, { roleId });
-      return roleId === null ? 'You’re attending.' : 'Signed up.';
+const signup = (
+  eventId: number,
+  roleId: number | null,
+  availability:
+    | 'available'
+    | 'tentative'
+    | 'unavailable' = 'available',
+) =>
+  run(async () => {
+    await api.post(`/events/${eventId}/signup`, {
+      roleId,
+      availability,
     });
 
-  const withdraw = (eventId: number) =>
-    run(async () => {
-      await api.del(`/events/${eventId}/signup`);
-      return 'Withdrawn from the event.';
-    });
+    return roleId === null
+      ? availability === 'tentative'
+        ? 'Quedaste por confirmar.'
+        : availability === 'unavailable'
+          ? 'Marcaste que no puedes.'
+          : 'Estás disponible.'
+      : 'Inscripción actualizada.';
+  });
 
   const checkin = (eventId: number) =>
     run(async () => {
@@ -232,8 +246,9 @@ export default function Events() {
                 <SignupControls
                   event={ev}
                   busy={busy}
-                  onSignup={(roleId) => void signup(ev.id, roleId)}
-                  onWithdraw={() => void withdraw(ev.id)}
+                  onSignup={(roleId, availability) =>
+  void signup(ev.id, roleId, availability)
+}
                 />
 
                 {att && (
@@ -285,12 +300,13 @@ function SignupControls({
   event,
   busy,
   onSignup,
-  onWithdraw,
 }: {
   event: EventItem;
   busy: boolean;
-  onSignup: (roleId: number | null) => void;
-  onWithdraw: () => void;
+  onSignup: (
+  roleId: number | null,
+  availability?: 'available' | 'tentative' | 'unavailable',
+) => void;
 }) {
   const my = event.mySignup;
   const myRole = my?.roleId ?? null;
@@ -320,18 +336,43 @@ function SignupControls({
         );
       })}
       <button
-        className={attending && myRole === null ? 'chip active' : 'chip'}
-        disabled={busy}
-        onClick={() => onSignup(null)}
-        title="Attend without a specific role"
-      >
-        Attending
-      </button>
-      {attending && (
-        <button className="chip withdraw" disabled={busy} onClick={onWithdraw} title="Withdraw">
-          Withdraw
-        </button>
-      )}
+  className={
+    my?.availability === 'available'
+      ? 'chip active'
+      : 'chip'
+  }
+  disabled={busy}
+  onClick={() => onSignup(null, 'available')}
+  title="Disponible para este evento"
+>
+  Disponible
+</button>
+
+<button
+  className={
+    my?.availability === 'tentative'
+      ? 'chip active'
+      : 'chip'
+  }
+  disabled={busy}
+  onClick={() => onSignup(null, 'tentative')}
+  title="Aún no sabes si podrás"
+>
+  Por confirmar
+</button>
+
+<button
+  className={
+    my?.availability === 'unavailable'
+      ? 'chip active'
+      : 'chip withdraw'
+  }
+  disabled={busy}
+  onClick={() => onSignup(null, 'unavailable')}
+  title="No puedes asistir"
+>
+  No puedo
+</button>
     </div>
   );
 }
@@ -391,6 +432,7 @@ interface SignupEntry {
   avatarUrl: string;
   roleId: number | null;
   roleName: string | null;
+  availability: 'available' | 'tentative' | 'unavailable';
 }
 
 /** Collapsible "who's coming" roster, grouped by role. Fetched on first expand. */
@@ -415,14 +457,23 @@ function AttendeeRoster({ eventId, count }: { eventId: number; count: number }) 
     }
   }
 
-  // Group by role name for display; no-role attendees fall under "Attending".
-  const groups = new Map<string, SignupEntry[]>();
-  for (const su of signups ?? []) {
-    const key = su.roleName ?? 'Attending';
-    const list = groups.get(key) ?? [];
-    list.push(su);
-    groups.set(key, list);
-  }
+  // Group members by availability for the SkF Dojo.
+const groups = new Map<string, SignupEntry[]>([
+  ['Disponibles', []],
+  ['Por confirmar', []],
+  ['No pueden', []],
+]);
+
+for (const su of signups ?? []) {
+  const key =
+    su.availability === 'tentative'
+      ? 'Por confirmar'
+      : su.availability === 'unavailable'
+        ? 'No pueden'
+        : 'Disponibles';
+
+  groups.get(key)!.push(su);
+}
 
   return (
     <div className="attendees">
@@ -436,7 +487,9 @@ function AttendeeRoster({ eventId, count }: { eventId: number; count: number }) 
           <p className="muted small">No one has signed up yet.</p>
         ) : (
           <div className="attendee-groups">
-            {[...groups.entries()].map(([role, members]) => (
+            {[...groups.entries()]
+  .filter(([, members]) => members.length > 0)
+  .map(([role, members]) => (
               <div key={role} className="attendee-group">
                 <div className="attendee-role">
                   {role} <span className="muted">({members.length})</span>

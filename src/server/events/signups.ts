@@ -23,12 +23,18 @@ export interface RoleState {
   sortOrder: number;
   count: number;
 }
+export type AvailabilityState =
+  | 'available'
+  | 'tentative'
+  | 'unavailable';
+
 export interface SignupEntry {
   userId: number;
   name: string;
   avatarUrl: string;
   roleId: number | null;
   roleName: string | null;
+  availability: AvailabilityState;
 }
 export interface EventState {
   event: typeof s.events.$inferSelect;
@@ -66,6 +72,7 @@ export async function loadEventState(db: DB, eventId: number): Promise<EventStat
     .select({
       userId: s.eventSignups.userId,
       roleId: s.eventSignups.eventRoleId,
+      availability: s.eventSignups.availability,
       username: s.users.username,
       globalName: s.users.globalName,
       displayName: s.users.displayName,
@@ -85,6 +92,7 @@ export async function loadEventState(db: DB, eventId: number): Promise<EventStat
     avatarUrl: memberAvatar({ discordId: r.discordId, avatar: r.avatar, profileImageUrl: r.profileImageUrl }, 64),
     roleId: r.roleId,
     roleName: r.roleId != null ? (roleNameById.get(r.roleId) ?? null) : null,
+    availability: r.availability,
   }));
 
   const counts = new Map<number, number>();
@@ -100,7 +108,17 @@ export async function loadEventState(db: DB, eventId: number): Promise<EventStat
     count: counts.get(r.id) ?? 0,
   }));
 
-  return { event, gameName, roles: roleStates, signups, total: signups.length };
+  const totalAvailable = signups.filter(
+  (su) => su.availability === 'available'
+).length;
+
+return {
+  event,
+  gameName,
+  roles: roleStates,
+  signups,
+  total: totalAvailable,
+};
 }
 
 /**
@@ -113,6 +131,7 @@ export async function setSignup(
   eventId: number,
   userId: number,
   roleId: number | null,
+  availability: AvailabilityState = 'available',
 ): Promise<SignupResult> {
   const event = await db.query.events.findFirst({ where: eq(s.events.id, eventId) });
   if (!event) return { ok: false, error: 'No such event.' };
@@ -142,18 +161,32 @@ export async function setSignup(
     }
   }
 
-  const nowSec = Math.floor(Date.now() / 1000);
-  await db
-    .insert(s.eventSignups)
-    .values({ eventId, userId, eventRoleId: roleId, createdAt: nowSec, updatedAt: nowSec })
-    .onConflictDoUpdate({
-      target: [s.eventSignups.eventId, s.eventSignups.userId],
-      set: { eventRoleId: roleId, updatedAt: nowSec },
-    });
+const nowSec = Math.floor(Date.now() / 1000);
 
-  return { ok: true };
+await db
+  .insert(s.eventSignups)
+  .values({
+  eventId,
+  userId,
+  eventRoleId: roleId,
+  availability,
+  createdAt: nowSec,
+  updatedAt: nowSec,
+})
+  .onConflictDoUpdate({
+    target: [
+      s.eventSignups.eventId,
+      s.eventSignups.userId,
+    ],
+    set: {
+  eventRoleId: roleId,
+  availability,
+  updatedAt: nowSec,
+},
+  });
+
+return { ok: true };
 }
-
 /** Withdraw a member's sign-up. No-op if they weren't signed up. */
 export async function removeSignup(db: DB, eventId: number, userId: number): Promise<void> {
   await db

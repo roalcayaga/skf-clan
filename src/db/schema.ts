@@ -976,6 +976,11 @@ export const eventSignups = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     eventRoleId: integer('event_role_id').references(() => eventRoles.id, { onDelete: 'set null' }),
+    availability: text('availability', {
+  enum: ['available', 'tentative', 'unavailable'],
+})
+  .notNull()
+  .default('available'),
     createdAt: integer('created_at').notNull().default(now),
     updatedAt: integer('updated_at').notNull().default(now),
   },

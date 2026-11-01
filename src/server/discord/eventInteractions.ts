@@ -50,10 +50,33 @@ export async function handleEventComponent(env: Env, i: Interaction): Promise<vo
     note = 'You need a mustr account first — sign in on the website once, then try again.';
   } else if (user.status === 'banned') {
     note = 'Your account is not active.';
-  } else if (kind === 'withdraw') {
-    await removeSignup(db, eventId, user.id);
-    note = 'You’ve withdrawn from this event.';
-  } else if (kind === 'role') {
+} else if (kind === 'withdraw') {
+  await removeSignup(db, eventId, user.id);
+  note = 'You’ve withdrawn from this event.';
+} else if (kind === 'availability') {
+  const availability =
+    arg === 'tentative'
+      ? 'tentative'
+      : arg === 'unavailable'
+        ? 'unavailable'
+        : 'available';
+
+  const res = await setSignup(
+    db,
+    eventId,
+    user.id,
+    null,
+    availability,
+  );
+
+  note = res.ok
+    ? availability === 'tentative'
+      ? '🟡 Quedaste por confirmar.'
+      : availability === 'unavailable'
+        ? '🔴 Marcaste que no puedes.'
+        : '🟢 Estás disponible.'
+    : `⚠️ ${res.error}`;
+} else if (kind === 'role') {
     const roleId = arg === 'none' ? null : Number(arg);
     const res = await setSignup(db, eventId, user.id, roleId);
     note = res.ok ? '✅ You’re signed up.' : `⚠️ ${res.error}`;

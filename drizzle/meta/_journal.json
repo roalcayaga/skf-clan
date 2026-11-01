@@ -260,6 +260,13 @@
       "when": 1793491950057,
       "tag": "0036_tired_klaw",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1793500682397,
+      "tag": "0037_tough_korath",
+      "breakpoints": true
     }
   ]
 }

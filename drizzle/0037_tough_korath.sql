@@ -1,0 +1,1 @@
+ALTER TABLE `event_signups` ADD `availability` text DEFAULT 'available' NOT NULL;

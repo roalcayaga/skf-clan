@@ -145,15 +145,33 @@ events.get('/', requirePermission('events.view'), async (c) => {
       .from(s.eventRoles)
       .where(inArray(s.eventRoles.eventId, ids))
       .orderBy(asc(s.eventRoles.sortOrder), asc(s.eventRoles.id)),
+database
+  .select({
+    eventId: s.eventSignups.eventId,
+    roleId: s.eventSignups.eventRoleId,
+    n: sql<number>`count(*)`,
+  })
+  .from(s.eventSignups)
+  .where(
+    and(
+      inArray(s.eventSignups.eventId, ids),
+      eq(s.eventSignups.availability, 'available'),
+    ),
+  )
+  .groupBy(s.eventSignups.eventId, s.eventSignups.eventRoleId),
     database
-      .select({ eventId: s.eventSignups.eventId, roleId: s.eventSignups.eventRoleId, n: sql<number>`count(*)` })
-      .from(s.eventSignups)
-      .where(inArray(s.eventSignups.eventId, ids))
-      .groupBy(s.eventSignups.eventId, s.eventSignups.eventRoleId),
-    database
-      .select({ eventId: s.eventSignups.eventId, roleId: s.eventSignups.eventRoleId })
-      .from(s.eventSignups)
-      .where(and(inArray(s.eventSignups.eventId, ids), eq(s.eventSignups.userId, viewer.id))),
+  .select({
+    eventId: s.eventSignups.eventId,
+    roleId: s.eventSignups.eventRoleId,
+    availability: s.eventSignups.availability,
+  })
+  .from(s.eventSignups)
+  .where(
+    and(
+      inArray(s.eventSignups.eventId, ids),
+      eq(s.eventSignups.userId, viewer.id),
+    ),
+  ),
     database
       .select({ eventId: s.eventAttendance.eventId })
       .from(s.eventAttendance)
@@ -182,14 +200,26 @@ events.get('/', requirePermission('events.view'), async (c) => {
     rolesByEvent.set(r.eventId, list);
   }
 
-  const mineByEvent = new Map<number, number | null>();
-  for (const m of mine) mineByEvent.set(m.eventId, m.roleId);
+  const mineByEvent = new Map<
+  number,
+  {
+    roleId: number | null;
+    availability: 'available' | 'tentative' | 'unavailable';
+  }
+>();
+
+for (const m of mine) {
+  mineByEvent.set(m.eventId, {
+    roleId: m.roleId,
+    availability: m.availability,
+  });
+}
 
   const enriched = rows.map((r) => ({
     ...r,
     roles: rolesByEvent.get(r.id) ?? [],
     signupCount: totalByEvent.get(r.id) ?? 0,
-    mySignup: mineByEvent.has(r.id) ? { roleId: mineByEvent.get(r.id) ?? null } : null,
+    mySignup: mineByEvent.get(r.id) ?? null,
     attended: attendedSet.has(r.id),
   }));
 
@@ -319,10 +349,19 @@ events.delete('/:id', requirePermission('events.manage'), async (c) => {
 /** Sign the viewer up (or move them to a different role). roleId null = no specific role. */
 events.post('/:id/signup', requirePermission('events.view'), async (c) => {
   const id = Number(c.req.param('id'));
-  const { roleId } = await c.req.json<{ roleId?: number | null }>();
+  const { roleId, availability } = await c.req.json<{
+  roleId?: number | null;
+  availability?: 'available' | 'tentative' | 'unavailable';
+}>();
   const viewer = c.get('viewer')!;
 
-  const res = await setSignup(db(c.env), id, viewer.id, roleId ?? null);
+  const res = await setSignup(
+  db(c.env),
+  id,
+  viewer.id,
+  roleId ?? null,
+  availability ?? 'available',
+);
   if (!res.ok) return c.json({ error: res.error }, 400);
 
   c.executionCtx.waitUntil(refreshEventMessage(c.env, id));
