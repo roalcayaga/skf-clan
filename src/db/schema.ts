@@ -694,6 +694,66 @@ export const memberMedals = sqliteTable(
     index('member_medals_medal_idx').on(t.medalId),
   ],
 );
+export const legacyMembers = sqliteTable(
+  'legacy_members',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+
+    name: text('name').notNull(),
+
+    // Imagen opcional del miembro histórico.
+    profileImageUrl: text('profile_image_url'),
+
+    // Puede usar la misma jerarquía Shifu / Shixiong / Shaolin / Discípulo.
+    rankId: integer('rank_id').references(() => ranks.id, {
+      onDelete: 'set null',
+    }),
+
+    // Ej: "1997–2002"
+    yearsActive: text('years_active'),
+
+    // Nota breve opcional para contexto histórico.
+    note: text('note'),
+
+    // Permite controlar manualmente el orden en el roster histórico.
+    sortOrder: integer('sort_order').notNull().default(0),
+
+    createdAt: integer('created_at').notNull().default(now),
+    updatedAt: integer('updated_at').notNull().default(now),
+  },
+  (t) => [
+    index('legacy_members_rank_idx').on(t.rankId),
+    index('legacy_members_sort_idx').on(t.sortOrder),
+  ],
+);
+
+export const legacyMemberMedals = sqliteTable(
+  'legacy_member_medals',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+
+    legacyMemberId: integer('legacy_member_id')
+      .notNull()
+      .references(() => legacyMembers.id, { onDelete: 'cascade' }),
+
+    medalId: integer('medal_id')
+      .notNull()
+      .references(() => medals.id, { onDelete: 'cascade' }),
+
+    citation: text('citation'),
+
+    // Puede seguir registrándose qué admin actual otorgó la distinción.
+    awardedBy: integer('awarded_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+
+    awardedAt: integer('awarded_at').notNull().default(now),
+  },
+  (t) => [
+    index('legacy_member_medals_member_idx').on(t.legacyMemberId),
+    index('legacy_member_medals_medal_idx').on(t.medalId),
+  ],
+);
 
 /* ------------------------------------------------------------------ *
  * War records — awardable "items of pride", handed to members like medals
