@@ -34,6 +34,20 @@ interface Member {
   imageUrl: string | null;
 }>;
 }
+interface LegacyMember {
+  id: number;
+  name: string;
+  profileImageUrl: string | null;
+  yearsActive: string | null;
+  note: string | null;
+  sortOrder: number;
+  rankName: string | null;
+  medals: Array<{
+    id: number;
+    name: string;
+    imageUrl: string | null;
+  }>;
+}
 
 type SortField = 'rank' | 'name';
 type SortDir = 'asc' | 'desc';
@@ -104,8 +118,9 @@ function LeadershipTree({ canOpenProfiles }: { canOpenProfiles: boolean }) {
 }
 
 function MemberList() {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [total, setTotal] = useState(0);
+const [members, setMembers] = useState<Member[]>([]);
+const [legacyMembers, setLegacyMembers] = useState<LegacyMember[]>([]);
+const [total, setTotal] = useState(0);
   const [sort, setSort] = useState<SortField>('rank');
   const [dir, setDir] = useState<SortDir>('desc');
   const [loading, setLoading] = useState(true);
@@ -113,11 +128,22 @@ function MemberList() {
 
   const loadPage = useCallback(
     async (offset: number, sortField: SortField, sortDir: SortDir) => {
-      const { members: page, total } = await api.get<{ members: Member[]; total: number }>(
+      const {
+  members: page,
+  legacyMembers: legacyPage,
+  total,
+} = await api.get<{
+  members: Member[];
+  legacyMembers: LegacyMember[];
+  total: number;
+}>(
         `/members?limit=${PAGE_SIZE}&offset=${offset}&sort=${sortField}&dir=${sortDir}`,
       );
       setTotal(total);
       setMembers((prev) => (offset === 0 ? page : [...prev, ...page]));
+      if (offset === 0) {
+  setLegacyMembers(legacyPage ?? []);
+}
     },
     [],
   );
@@ -227,6 +253,89 @@ function MemberList() {
               </button>
             </div>
           )}
+          {legacyMembers.length > 0 && (
+  <section className="skf-legacy-section">
+    <div className="skf-legacy-head">
+      <div>
+        <div className="skf-legacy-kicker">HISTORIA DEL TEMPLO</div>
+        <h3>Viejas Dinastías</h3>
+      </div>
+    </div>
+
+    <ul className="skf-legacy-roster">
+      {legacyMembers.map((m) => (
+        <li key={m.id} className="skf-legacy-item">
+          <div className="skf-legacy-card">
+            {m.profileImageUrl ? (
+              <img
+                className="skf-legacy-avatar"
+                src={m.profileImageUrl}
+                alt=""
+                width={48}
+                height={48}
+                loading="lazy"
+              />
+            ) : (
+              <div className="skf-legacy-avatar skf-legacy-avatar-placeholder">
+                龍
+              </div>
+            )}
+
+            <div className="skf-legacy-copy">
+              <div className="skf-legacy-name">{m.name}</div>
+
+              <div className="skf-legacy-meta">
+                {m.rankName && (
+                  <span className="skf-rank-chip">
+                    {m.rankName}
+                  </span>
+                )}
+
+                {m.yearsActive && (
+                  <span className="skf-legacy-years">
+                    {m.yearsActive}
+                  </span>
+                )}
+
+                <span className="skf-legacy-status">
+                  Miembro histórico
+                </span>
+              </div>
+
+              {m.medals.length > 0 && (
+                <div className="skf-roster-medals">
+                  {m.medals.map((medal) => (
+                    <span
+                      key={medal.id}
+                      className="skf-medal-chip"
+                    >
+                      {medal.imageUrl && (
+                        <img
+                          src={medal.imageUrl}
+                          alt=""
+                          width={16}
+                          height={16}
+                          loading="lazy"
+                        />
+                      )}
+                      {medal.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {m.note && (
+                <div className="skf-legacy-note">
+                  {m.note}
+                </div>
+              )}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
         </>
       )}
     </>

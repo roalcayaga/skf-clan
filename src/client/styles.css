@@ -8626,3 +8626,137 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
   border-color: rgba(0, 217, 245, 0.24);
   background: rgba(0, 217, 245, 0.05);
 }
+/* =========================
+   SkF — Viejas Dinastías
+   ========================= */
+
+.skf-legacy-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.skf-legacy-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.skf-legacy-kicker {
+  margin-bottom: 4px;
+  color: #ff2a2a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.skf-legacy-head h3 {
+  margin: 0;
+  color: #f2f7f8;
+  font-size: 18px;
+}
+
+.skf-legacy-roster {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skf-legacy-item {
+  overflow: hidden;
+  border: 1px solid rgba(255, 42, 42, 0.16);
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 42, 42, 0.04),
+      transparent 45%
+    ),
+    rgba(255, 255, 255, 0.015);
+}
+
+.skf-legacy-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.skf-legacy-avatar {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 42, 42, 0.28);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.skf-legacy-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      rgba(255, 42, 42, 0.16),
+      rgba(0, 217, 245, 0.04)
+    ),
+    #0a0f12;
+  color: #ff2a2a;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.skf-legacy-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skf-legacy-name {
+  color: #f2f7f8;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.skf-legacy-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.skf-legacy-years {
+  color: #819399;
+  font-size: 11px;
+}
+
+.skf-legacy-status {
+  color: #ff2a2a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.skf-legacy-note {
+  max-width: 720px;
+  color: #819399;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .skf-legacy-card {
+    padding: 12px;
+  }
+
+  .skf-legacy-avatar {
+    width: 42px;
+    height: 42px;
+  }
+}

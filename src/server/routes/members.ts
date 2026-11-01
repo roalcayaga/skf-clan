@@ -122,9 +122,85 @@ const membersWithMedals = rows.map((row) => ({
   ...row,
   medals: medalsByUser.get(row.id) ?? [],
 }));
+const legacyRows =
+  offset === 0
+    ? await database
+        .select({
+          id: s.legacyMembers.id,
+          name: s.legacyMembers.name,
+          profileImageUrl: s.legacyMembers.profileImageUrl,
+          yearsActive: s.legacyMembers.yearsActive,
+          note: s.legacyMembers.note,
+          sortOrder: s.legacyMembers.sortOrder,
+          rankName: s.ranks.name,
+        })
+        .from(s.legacyMembers)
+        .leftJoin(
+          s.ranks,
+          eq(s.legacyMembers.rankId, s.ranks.id)
+        )
+        .orderBy(
+          asc(s.legacyMembers.sortOrder),
+          asc(s.legacyMembers.name)
+        )
+    : [];
+
+const legacyIds = legacyRows.map((row) => row.id);
+
+const legacyMedalRows = legacyIds.length
+  ? await database
+      .select({
+        legacyMemberId: s.legacyMemberMedals.legacyMemberId,
+        id: s.medals.id,
+        name: s.medals.name,
+        imageUrl: s.medals.imageUrl,
+      })
+      .from(s.legacyMemberMedals)
+      .innerJoin(
+        s.medals,
+        eq(s.legacyMemberMedals.medalId, s.medals.id)
+      )
+      .where(
+        inArray(
+          s.legacyMemberMedals.legacyMemberId,
+          legacyIds
+        )
+      )
+  : [];
+
+const legacyMedalsByMember = new Map<
+  number,
+  Array<{
+    id: number;
+    name: string;
+    imageUrl: string | null;
+  }>
+>();
+
+for (const medal of legacyMedalRows) {
+  const current =
+    legacyMedalsByMember.get(medal.legacyMemberId) ?? [];
+
+  current.push({
+    id: medal.id,
+    name: medal.name,
+    imageUrl: medal.imageUrl,
+  });
+
+  legacyMedalsByMember.set(
+    medal.legacyMemberId,
+    current
+  );
+}
+
+const legacyMembers = legacyRows.map((row) => ({
+  ...row,
+  medals: legacyMedalsByMember.get(row.id) ?? [],
+}));
 
 return c.json({
   members: membersWithMedals,
+  legacyMembers,
   total,
   limit,
   offset,
