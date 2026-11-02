@@ -378,6 +378,100 @@ members.post('/:id/ban', requirePermission('members.ban'), async (c) => {
   return c.json({ ok: true });
 });
 
+/**
+ * Public player card. This intentionally exposes only clan-facing identity and
+ * achievements — never email, god/admin flags, permissions, recruiter data,
+ * private activity, or other account metadata.
+ *
+ * Pending applicants and banned accounts are never public. Retired/inactive
+ * members remain visible so clan history and old achievements keep working.
+ */
+members.get('/public/:id', async (c) => {
+  const id = Number(c.req.param('id'));
+  if (!Number.isInteger(id) || id <= 0) return c.json({ error: 'No such member' }, 404);
+
+  const database = db(c.env);
+  const rows = await database
+    .select({
+      id: s.users.id,
+      discordId: s.users.discordId,
+      username: s.users.username,
+      globalName: s.users.globalName,
+      displayName: s.users.displayName,
+      avatar: s.users.avatar,
+      profileImageUrl: s.users.profileImageUrl,
+      status: s.users.status,
+      joinedAt: s.users.joinedAt,
+      rankId: s.users.rankId,
+    })
+    .from(s.users)
+    .where(eq(s.users.id, id))
+    .limit(1);
+  const user = rows[0];
+  if (!user || user.status === 'pending' || user.status === 'banned') {
+    return c.json({ error: 'No such member' }, 404);
+  }
+
+  const [rank, medals, warRecords, profile, quakeLink] = await Promise.all([
+    user.rankId ? database.query.ranks.findFirst({ where: eq(s.ranks.id, user.rankId) }) : null,
+    database
+      .select({
+        awardId: s.memberMedals.id,
+        id: s.medals.id,
+        name: s.medals.name,
+        imageUrl: s.medals.imageUrl,
+        citation: s.memberMedals.citation,
+        awardedBy: s.memberMedals.awardedBy,
+        awardedAt: s.memberMedals.awardedAt,
+      })
+      .from(s.memberMedals)
+      .innerJoin(s.medals, eq(s.memberMedals.medalId, s.medals.id))
+      .where(eq(s.memberMedals.userId, id))
+      .orderBy(desc(s.memberMedals.awardedAt)),
+    database
+      .select({
+        awardId: s.memberWarRecords.id,
+        id: s.warRecords.id,
+        name: s.warRecords.name,
+        imageUrl: s.warRecords.imageUrl,
+        gameName: s.games.name,
+        citation: s.memberWarRecords.citation,
+        awardedBy: s.memberWarRecords.awardedBy,
+        awardedAt: s.memberWarRecords.awardedAt,
+      })
+      .from(s.memberWarRecords)
+      .innerJoin(s.warRecords, eq(s.memberWarRecords.warRecordId, s.warRecords.id))
+      .leftJoin(s.games, eq(s.warRecords.gameId, s.games.id))
+      .where(eq(s.memberWarRecords.userId, id))
+      .orderBy(desc(s.memberWarRecords.awardedAt)),
+    database.query.profiles.findFirst({ where: eq(s.profiles.userId, id) }),
+    database.query.quakePlayerLinks.findFirst({ where: eq(s.quakePlayerLinks.userId, id) }),
+  ]);
+
+  return c.json({
+    member: {
+      id: user.id,
+      discordId: user.discordId,
+      username: user.username,
+      globalName: user.globalName,
+      displayName: user.displayName,
+      avatar: user.avatar,
+      profileImageUrl: user.profileImageUrl,
+      status: user.status,
+      joinedAt: user.joinedAt,
+      rank: rank
+        ? { id: rank.id, name: rank.name, sortOrder: rank.sortOrder, imageUrl: rank.imageUrl }
+        : null,
+      roles: [],
+      medals,
+      warRecords,
+      bio: profile?.bio ?? null,
+      steamId: quakeLink?.steamId ?? null,
+      quakeName: quakeLink?.quakeName ?? null,
+    },
+  });
+});
+
 // requireUser so a pending applicant can load their OWN profile (to edit it); the
 // self check below still blocks them from viewing anyone else (they lack roster.view).
 members.get('/:id', requireUser, async (c) => {
