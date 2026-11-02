@@ -11,7 +11,6 @@ import type {
   CompetitivePlayerSummary,
   CompetitiveResult,
   CompetitiveSummary,
-  CompetitiveWeaponSummary,
 } from '../../shared/competitive';
 
 type Tab = 'overview' | 'matches' | 'players' | 'wars' | 'tournaments' | 'training';
@@ -102,16 +101,6 @@ function fmtDate(iso: string): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(d);
-}
-
-function fmtEventDate(unix: number): string {
-  return new Intl.DateTimeFormat('es-CL', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(unix * 1000));
 }
 
 function fmtTime(unix: number): string {
@@ -283,7 +272,15 @@ export default function Competitive() {
   }, [weekStart]);
 
   async function loadDojo() {
-    if (!canViewDojo) return;
+    if (!canViewDojo) {
+      try {
+        const tournamentData = await api.get<{ tournaments: TournamentSummary[] }>('/tournaments');
+        setTournaments(tournamentData.tournaments);
+      } catch {
+        setTournaments([]);
+      }
+      return;
+    }
     setDojoLoading(true);
     setDojoError(null);
     const from = Math.floor(weekStart.getTime() / 1000);
