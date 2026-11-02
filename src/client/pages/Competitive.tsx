@@ -10,7 +10,7 @@ import type {
   CompetitiveWeaponSummary,
 } from '../../shared/competitive';
 
-type Tab = 'overview' | 'stats' | 'matches' | 'players' | 'dojo';
+type Tab = 'overview' | 'stats' | 'matches' | 'players' | 'public' | 'dojo';
 type Availability = 'available' | 'tentative' | 'unavailable';
 type Recurrence = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly';
 
@@ -57,6 +57,29 @@ interface LivePayload {
   online: boolean;
   server?: LiveServer;
 }
+interface PublicMode {
+  gameType: string;
+  username: string;
+  rating: number | null;
+  deviation: number | null;
+  totalGames: number;
+  wins: number;
+  losses: number;
+  kills: number | null;
+  deaths: number | null;
+  kd: number | null;
+  winRate: number;
+  capturedAt: number;
+}
+
+interface PublicArenaPlayer {
+  userId: number;
+  steamId: string;
+  quakeName: string | null;
+  siteName: string;
+  modes: PublicMode[];
+}
+
 
 const EMPTY_SUMMARY: CompetitiveSummary = {
   updatedAt: null,
@@ -261,6 +284,7 @@ export default function Competitive() {
   const [statsBusy, setStatsBusy] = useState(false);
   const [statsError, setStatsError] = useState<string | null>(null);
   const [selectedSteamId, setSelectedSteamId] = useState<string | null>(null);
+  const [publicPlayers, setPublicPlayers] = useState<PublicArenaPlayer[]>([]);
 
   const [live, setLive] = useState<LivePayload | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
@@ -303,6 +327,16 @@ export default function Competitive() {
     }
   }
 
+  async function loadPublicArena() {
+    try {
+      const data = await api.get<{ players: PublicArenaPlayer[] }>('/competitive/public');
+      setPublicPlayers(data.players);
+    } catch {
+      setPublicPlayers([]);
+    }
+  }
+
+
   const weekStart = useMemo(() => mondayForOffset(weekOffset), [weekOffset]);
   const weekEnd = useMemo(() => {
     const d = new Date(weekStart);
@@ -329,6 +363,7 @@ export default function Competitive() {
 
   useEffect(() => {
     void loadStats();
+    void loadPublicArena();
     void loadLive();
     const timer = window.setInterval(() => void loadLive(), 30_000);
     return () => window.clearInterval(timer);
@@ -345,6 +380,7 @@ export default function Competitive() {
     try {
       const data = await api.post<{ summary: CompetitiveSummary }>('/competitive/refresh');
       setSummary(data.summary);
+      void loadPublicArena();
     } catch (err) {
       setStatsError(err instanceof Error ? err.message : 'No se pudo actualizar QuakeClub.');
     } finally {
@@ -407,6 +443,10 @@ export default function Competitive() {
 
   const selectedPlayer =
     summary.players.find((p) => p.steamId === selectedSteamId) ?? summary.players[0] ?? null;
+  const selectedPublic =
+    publicPlayers.find((p) => p.steamId === (selectedPlayer?.steamId ?? selectedSteamId)) ?? null;
+  const selectedPublicCA =
+    selectedPublic?.modes.find((m) => m.gameType === 'CA') ?? selectedPublic?.modes[0] ?? null;
 
   const maxWeaponDamage = Math.max(1, ...summary.weapons.map((w) => w.damage));
   const activePlayers = live?.server?.roster?.filter((p) => p.kind !== 'spectator' && p.kind !== 'bot') ?? [];
@@ -453,6 +493,7 @@ export default function Competitive() {
           ['stats', 'Stats'],
           ['matches', 'Partidas'],
           ['players', 'Guerreros'],
+          ['public', 'Public Arena'],
           ['dojo', 'Dojo'],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
@@ -630,11 +671,89 @@ export default function Competitive() {
                         </div>
                       ))}
                     </div>
+                    <div className="competitive-benchmark-card">
+                      <span>SKF vs PUBLIC ARENA</span>
+                      {selectedPublicCA ? (
+                        <>
+                          <div><small>SkF K/D</small><strong>{selectedPlayer.kd}</strong></div>
+                          <div><small>Public {selectedPublicCA.gameType}</small><strong>{selectedPublicCA.kd ?? 'N/A'}</strong></div>
+                          <div><small>Public ELO</small><strong>{selectedPublicCA.rating != null ? Math.round(selectedPublicCA.rating) : '—'}</strong></div>
+                          <div><small>Public W%</small><strong>{selectedPublicCA.winRate}%</strong></div>
+                        </>
+                      ) : (
+                        <p className="muted small">Vincula SteamID64 en el perfil para activar el benchmark público.</p>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <p className="muted">Selecciona un guerrero.</p>
                 )}
               </aside>
+            </div>
+          )}
+
+          {tab === 'public' && (
+            <div className="competitive-stack">
+              <section className="competitive-panel">
+                <div className="competitive-section-head">
+                  <div>
+                    <span>QUAKE CLUB · SERVIDORES PÚBLICOS</span>
+                    <h2>Public Arena</h2>
+                  </div>
+                  <small>Se actualiza automáticamente desde la API pública oficial.</small>
+                </div>
+                {publicPlayers.length ? (
+                  <div className="competitive-table-wrap">
+                    <table className="competitive-table public-arena-table">
+                      <thead>
+                        <tr>
+                          <th>Guerrero</th>
+                          <th>Modo</th>
+                          <th>ELO</th>
+                          <th>Partidas</th>
+                          <th>W%</th>
+                          <th>K/D</th>
+                          <th>Vs SkF K/D</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {publicPlayers.flatMap((player) =>
+                          player.modes
+                            .slice()
+                            .sort((a, b) => (a.gameType === 'CA' ? -1 : b.gameType === 'CA' ? 1 : a.gameType.localeCompare(b.gameType)))
+                            .map((mode) => {
+                              const skf = summary.players.find((p) => p.steamId === player.steamId);
+                              const kdDelta =
+                                skf && mode.kd != null ? Math.round((skf.kd - mode.kd) * 100) / 100 : null;
+                              return (
+                                <tr
+                                  key={player.steamId + ':' + mode.gameType}
+                                  className="is-clickable"
+                                  onClick={() => { setSelectedSteamId(player.steamId); setTab('players'); }}
+                                >
+                                  <td><strong>{player.siteName}</strong><small>{player.quakeName || player.steamId}</small></td>
+                                  <td>{mode.gameType}</td>
+                                  <td className="positive">{mode.rating != null ? Math.round(mode.rating) : '—'}</td>
+                                  <td>{mode.totalGames}</td>
+                                  <td>{mode.winRate}%</td>
+                                  <td>{mode.kd ?? 'N/A'}</td>
+                                  <td className={kdDelta != null && kdDelta > 0 ? 'positive' : kdDelta != null && kdDelta < 0 ? 'negative' : ''}>
+                                    {kdDelta == null ? '—' : (kdDelta > 0 ? '+' : '') + kdDelta}
+                                  </td>
+                                </tr>
+                              );
+                            }),
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="competitive-empty-public">
+                    <strong>Aún no hay jugadores vinculados.</strong>
+                    <p className="muted">Cada miembro puede agregar su SteamID64 desde su perfil. El collector hará el resto.</p>
+                  </div>
+                )}
+              </section>
             </div>
           )}
 
