@@ -302,6 +302,11 @@ export default function MemberDetail({
   // Manual roles are the only ones managed here; rank-derived roles are set on
   // the rank in the admin panel, so they aren't listed or revocable on a member.
   const manualRoles = member.roles.filter((r) => r.source !== 'rank');
+  const steamLinkStatus =
+    !embedded && typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('steam')
+      : null;
+
   const showAdminBar =
     managementMode &&
     (can('roster.promote') ||
@@ -324,6 +329,18 @@ export default function MemberDetail({
       ) : null}
 
       <Alerts error={error} warning={warning} notice={notice} />
+      {steamLinkStatus === 'linked' && (
+        <div className="notice">Cuenta Steam vinculada correctamente. Las estadísticas de Quake se actualizarán automáticamente.</div>
+      )}
+      {steamLinkStatus === 'already_linked' && (
+        <div className="warn-alert">Esa cuenta Steam ya está vinculada a otro miembro de SkF.</div>
+      )}
+      {(steamLinkStatus === 'verification_failed' || steamLinkStatus === 'state_error') && (
+        <div className="warn-alert">No pudimos verificar la cuenta con Steam. Intenta vincularla nuevamente.</div>
+      )}
+      {steamLinkStatus === 'cancelled' && (
+        <div className="notice">Vinculación con Steam cancelada.</div>
+      )}
 
       {pending && (
         <div className="reason-prompt">
@@ -924,21 +941,35 @@ function ProfileEditor({
         Discord nickname.
       </p>
 
-      <label className="field">
-        SteamID64
-        <input
-          value={steam}
-          inputMode="numeric"
-          maxLength={17}
-          placeholder="7656119…"
-          onChange={(e) => setSteam(e.target.value.replace(/\D/g, '').slice(0, 17))}
-          disabled={busy}
-          aria-invalid={!steamValid}
-        />
-      </label>
-      <p className="muted small">
-        Vincula tu identidad de Quake Club. Son 17 dígitos; permite seguir tus stats aunque cambies de nick.
-      </p>
+      <div className="steam-link-section">
+        {isSelf && (
+          <>
+            <a className="steam-link-button" href="/api/auth/steam/link">
+              <span className="steam-link-mark" aria-hidden>STEAM</span>
+              {steamId ? 'Volver a vincular cuenta Steam' : 'Vincular cuenta Steam'}
+            </a>
+            <div className="steam-link-divider"><span>o</span></div>
+          </>
+        )}
+
+        <label className="field">
+          SteamID64
+          <input
+            value={steam}
+            inputMode="numeric"
+            maxLength={17}
+            placeholder="7656119…"
+            onChange={(e) => setSteam(e.target.value.replace(/\D/g, '').slice(0, 17))}
+            disabled={busy}
+            aria-invalid={!steamValid}
+          />
+        </label>
+        <p className="muted small">
+          {isSelf
+            ? 'También puedes ingresar el SteamID64 manualmente. Se usa para vincular tu identidad de Quake Club y seguir tus stats aunque cambies de nick.'
+            : 'SteamID64 del jugador. Son 17 dígitos y permite seguir sus stats aunque cambie de nick.'}
+        </p>
+      </div>
 
       <label className="field">
         Bio
