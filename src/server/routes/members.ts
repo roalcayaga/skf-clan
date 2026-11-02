@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import * as s from '../../db/schema';
 import type { AppContext } from '../env';
 import { db, requireAuth, requireUser, requirePermission } from '../middleware/auth';
@@ -73,11 +73,15 @@ members.get('/', requirePermission('roster.view'), async (c) => {
     })
     .from(s.users)
     .leftJoin(s.ranks, eq(s.users.rankId, s.ranks.id))
+    .where(and(ne(s.users.status, 'pending'), ne(s.users.status, 'banned')))
     .orderBy(...orderBy)
     .limit(limit)
     .offset(offset);
 
-  const totalRow = await database.select({ n: sql<number>`count(*)` }).from(s.users);
+  const totalRow = await database
+    .select({ n: sql<number>`count(*)` })
+    .from(s.users)
+    .where(and(ne(s.users.status, 'pending'), ne(s.users.status, 'banned')));
   const total = Number(totalRow[0]?.n ?? 0);
 
 const memberIds = rows.map((row) => row.id);
