@@ -27,7 +27,7 @@ export default function Tournaments() {
         setError(null);
       })
       .catch((err) =>
-        setError(err instanceof ApiError && err.status === 401 ? 'Sign in to see tournaments.' : 'Could not load tournaments.'),
+        setError(err instanceof ApiError && err.status === 401 ? 'Inicia sesión para ver los torneos.' : 'No se pudieron cargar los torneos.'),
       )
       .finally(() => setLoading(false));
   }, []);
@@ -39,20 +39,20 @@ export default function Tournaments() {
     <section className="panel">
       <header className="panel-head roster-head">
         <div>
-          <h2>Tournaments</h2>
-          <p className="muted">Brackets, standings, and champions.</p>
+          <h2>Torneos</h2>
+          <p className="muted">Brackets, posiciones y campeones del Dojo.</p>
         </div>
         {can('tournaments.manage') && (
-          <Link to="/admin/tournaments" className="button primary">New tournament</Link>
+          <Link to="/admin/tournaments" className="button primary">+ Nuevo torneo</Link>
         )}
       </header>
 
       {loading ? (
-        <div className="loading">Loading…</div>
+        <div className="loading">Cargando…</div>
       ) : error ? (
         <p className="muted">{error}</p>
       ) : rows.length === 0 ? (
-        <p className="muted">No tournaments yet.</p>
+        <p className="muted">Todavía no hay torneos.</p>
       ) : (
         <>
           <div className="tournament-grid">
@@ -62,7 +62,7 @@ export default function Tournaments() {
           </div>
           {past.length > 0 && (
             <>
-              <h3 className="account-subhead">Past tournaments</h3>
+              <h3 className="account-subhead">Torneos anteriores</h3>
               <div className="tournament-grid">
                 {past.map((t) => (
                   <TournamentCard key={t.id} t={t} />
@@ -94,7 +94,7 @@ function TournamentCard({ t }: { t: TournamentSummary }) {
         </div>
         <div className="muted small">
           {t.gameName ? `${t.gameName} · ` : ''}
-          {t.entrantCount} {t.competitorType === 'team' ? 'teams' : 'entrants'}
+          {t.entrantCount} {t.competitorType === 'team' ? 'equipos' : 'participantes'}
         </div>
       </div>
     </Link>
