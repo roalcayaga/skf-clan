@@ -3,15 +3,17 @@ import { api } from '../lib/api';
 import '../competitive.css';
 import { useSession } from '../lib/session';
 import MatchRoomsTab from '../components/MatchRoomsTab';
+import DojoOverview from '../components/DojoOverview';
+import Tournaments from './Tournaments';
+import type { TournamentSummary } from '../lib/tournaments';
 import type {
   CompetitiveMatchView,
   CompetitivePlayerSummary,
   CompetitiveResult,
   CompetitiveSummary,
-  CompetitiveWeaponSummary,
 } from '../../shared/competitive';
 
-type Tab = 'overview' | 'stats' | 'matches' | 'players' | 'public' | 'wars' | 'dojo';
+type Tab = 'overview' | 'matches' | 'players' | 'wars' | 'tournaments' | 'training';
 type Availability = 'available' | 'tentative' | 'unavailable';
 type Recurrence = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly';
 
@@ -32,32 +34,6 @@ interface DojoEvent {
   mySignup: { roleId: number | null; availability: Availability } | null;
 }
 
-interface LivePlayer {
-  name: string;
-  kind?: 'player' | 'bot' | 'spectator';
-  score?: number;
-  ping_ms?: number;
-}
-
-interface LiveServer {
-  map?: string;
-  gametype?: string;
-  players?: number;
-  max_players?: number;
-  roster?: LivePlayer[];
-  match?: {
-    state?: string | null;
-    red_score?: number | null;
-    blue_score?: number | null;
-    clock?: string | null;
-  } | null;
-  connect?: { address?: string; url?: string | null };
-}
-
-interface LivePayload {
-  online: boolean;
-  server?: LiveServer;
-}
 interface PublicMode {
   gameType: string;
   username: string;
@@ -102,17 +78,6 @@ const RESULT_LABEL: Record<CompetitiveResult, string> = {
   draw: 'D',
 };
 
-const WEAPON_LABELS: Record<string, string> = {
-  RL: 'Rocket Launcher',
-  LG: 'Lightning Gun',
-  RG: 'Railgun',
-  SG: 'Shotgun',
-  PG: 'Plasma Gun',
-  GL: 'Grenade Launcher',
-  MG: 'Machinegun',
-  HMG: 'Heavy Machinegun',
-};
-
 const pad = (n: number) => String(n).padStart(2, '0');
 
 function mondayForOffset(offset: number): Date {
@@ -136,16 +101,6 @@ function fmtDate(iso: string): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(d);
-}
-
-function fmtEventDate(unix: number): string {
-  return new Intl.DateTimeFormat('es-CL', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(unix * 1000));
 }
 
 function fmtTime(unix: number): string {
@@ -192,29 +147,6 @@ function MatchRow({ match }: { match: CompetitiveMatchView }) {
         ) : (
           <span>sin score</span>
         )}
-      </div>
-    </div>
-  );
-}
-
-function WeaponBar({ weapon, maxDamage }: { weapon: CompetitiveWeaponSummary; maxDamage: number }) {
-  const width = maxDamage > 0 ? Math.max(4, (weapon.damage / maxDamage) * 100) : 0;
-  return (
-    <div className="competitive-weapon">
-      <div className="competitive-weapon-head">
-        <div>
-          <strong>{WEAPON_LABELS[weapon.weapon] || weapon.weapon}</strong>
-          <span>{weapon.weapon}</span>
-        </div>
-        <b>{weapon.accuracy}%</b>
-      </div>
-      <div className="competitive-bar">
-        <span style={{ width: width + '%' }} />
-      </div>
-      <div className="competitive-weapon-meta">
-        <span>{fmtNumber(weapon.kills)} kills</span>
-        <span>{fmtNumber(weapon.damage)} dmg</span>
-        <span>{fmtNumber(weapon.hits)}/{fmtNumber(weapon.shots)} hits</span>
       </div>
     </div>
   );
@@ -287,9 +219,11 @@ export default function Competitive() {
   const [selectedSteamId, setSelectedSteamId] = useState<string | null>(null);
   const [publicPlayers, setPublicPlayers] = useState<PublicArenaPlayer[]>([]);
 
-  const [live, setLive] = useState<LivePayload | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
+  const [weekEvents, setWeekEvents] = useState<DojoEvent[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<DojoEvent[]>([]);
   const [dojo, setDojo] = useState<DojoEvent[]>([]);
+  const [tournaments, setTournaments] = useState<TournamentSummary[]>([]);
   const [dojoLoading, setDojoLoading] = useState(false);
   const [dojoError, setDojoError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -320,14 +254,6 @@ export default function Competitive() {
     }
   }
 
-  async function loadLive() {
-    try {
-      setLive(await api.get<LivePayload>('/skf/server-status'));
-    } catch {
-      setLive({ online: false });
-    }
-  }
-
   async function loadPublicArena() {
     try {
       const data = await api.get<{ players: PublicArenaPlayer[] }>('/competitive/public');
@@ -346,16 +272,35 @@ export default function Competitive() {
   }, [weekStart]);
 
   async function loadDojo() {
-    if (!canViewDojo) return;
+    if (!canViewDojo) {
+      try {
+        const tournamentData = await api.get<{ tournaments: TournamentSummary[] }>('/tournaments');
+        setTournaments(tournamentData.tournaments);
+      } catch {
+        setTournaments([]);
+      }
+      return;
+    }
     setDojoLoading(true);
     setDojoError(null);
     const from = Math.floor(weekStart.getTime() / 1000);
     const to = Math.floor(weekEnd.getTime() / 1000) - 1;
+    const now = Math.floor(Date.now() / 1000);
+    const horizon = now + 30 * 86_400;
     try {
-      const data = await api.get<{ events: DojoEvent[] }>('/events?from=' + from + '&to=' + to);
-      setDojo(data.events.filter((event) => /^DOJO\s*[·:-]/i.test(event.title)));
+      const [weekData, upcomingData, tournamentData] = await Promise.all([
+        api.get<{ events: DojoEvent[] }>('/events?from=' + from + '&to=' + to),
+        api.get<{ events: DojoEvent[] }>('/events?from=' + now + '&to=' + horizon),
+        api.get<{ tournaments: TournamentSummary[] }>('/tournaments'),
+      ]);
+      setWeekEvents(weekData.events);
+      setUpcomingEvents(upcomingData.events);
+      setDojo(weekData.events.filter((event) => /^DOJO\s*[·:-]/i.test(event.title)));
+      setTournaments(tournamentData.tournaments);
     } catch (err) {
-      setDojoError(err instanceof Error ? err.message : 'No se pudo cargar el Dojo.');
+      setDojoError(err instanceof Error ? err.message : 'No se pudo cargar el calendario del Dojo.');
+      setWeekEvents([]);
+      setUpcomingEvents([]);
       setDojo([]);
     } finally {
       setDojoLoading(false);
@@ -365,9 +310,6 @@ export default function Competitive() {
   useEffect(() => {
     void loadStats();
     void loadPublicArena();
-    void loadLive();
-    const timer = window.setInterval(() => void loadLive(), 30_000);
-    return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -449,9 +391,6 @@ export default function Competitive() {
   const selectedPublicCA =
     selectedPublic?.modes.find((m) => m.gameType === 'CA') ?? selectedPublic?.modes[0] ?? null;
 
-  const maxWeaponDamage = Math.max(1, ...summary.weapons.map((w) => w.damage));
-  const activePlayers = live?.server?.roster?.filter((p) => p.kind !== 'spectator' && p.kind !== 'bot') ?? [];
-  const nextDojo = [...dojo].sort((a, b) => a.startsAt - b.startsAt).filter((e) => e.endsAt >= Date.now() / 1000);
 
   const days = useMemo(
     () =>
@@ -472,9 +411,9 @@ export default function Competitive() {
     <div className="competitive-hub">
       <header className="competitive-hero">
         <div>
-          <div className="competitive-kicker">SHAOLIN KUNG FU · ARENA</div>
-          <h1>SkF Arena</h1>
-          <p>Partidas, guerreros, armas, servidor y entrenamiento semanal en un solo lugar.</p>
+          <div className="competitive-kicker">SHAOLIN KUNG FU · DOJO</div>
+          <h1>SkF Dojo</h1>
+          <p>Entrenar. Competir. Evolucionar. La actividad deportiva y competitiva de SkF en un solo lugar.</p>
         </div>
         <div className="competitive-hero-actions">
           {summary.updatedAt && (
@@ -488,15 +427,14 @@ export default function Competitive() {
         </div>
       </header>
 
-      <nav className="competitive-tabs" aria-label="SkF Arena">
+      <nav className="competitive-tabs" aria-label="SkF Dojo">
         {([
           ['overview', 'Resumen'],
-          ['stats', 'Stats'],
-          ['matches', 'Partidas'],
           ['players', 'Guerreros'],
-          ['public', 'Public Arena'],
-          ['wars', 'Match Room'],
-          ['dojo', 'Dojo'],
+          ['matches', 'Partidas'],
+          ['wars', 'Wars'],
+          ['tournaments', 'Torneos'],
+          ['training', 'Entrenamiento'],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -511,119 +449,27 @@ export default function Competitive() {
 
       {statsError && <div className="competitive-alert">{statsError}</div>}
       {loading ? (
-        <div className="loading">Cargando SkF Arena…</div>
+        <div className="loading">Cargando SkF Dojo…</div>
       ) : (
         <>
           {tab === 'overview' && (
-            <div className="competitive-stack">
-              <section className="competitive-kpis">
-                <div><span>PARTIDAS</span><strong>{summary.totalMatches}</strong></div>
-                <div><span>RECORD</span><strong>{summary.wins}<em>W</em> {summary.losses}<em>L</em></strong></div>
-                <div><span>WIN RATE</span><strong>{summary.winRate}%</strong></div>
-                <div><span>GUERREROS</span><strong>{summary.playerCount}</strong></div>
-              </section>
-
-              <section className="competitive-live">
-                <div className="competitive-section-head">
-                  <div>
-                    <span>SERVER LIVE</span>
-                    <h2>Templo en línea</h2>
-                  </div>
-                  <b className={live?.online ? 'online' : 'offline'}>
-                    {live?.online ? 'ONLINE' : 'OFFLINE'}
-                  </b>
-                </div>
-                <div className="competitive-live-grid">
-                  <div><span>MAPA</span><strong>{live?.server?.map || '—'}</strong></div>
-                  <div><span>MODO</span><strong>{live?.server?.gametype || 'Clan Arena'}</strong></div>
-                  <div><span>JUGADORES</span><strong>{live?.server?.players ?? 0}/{live?.server?.max_players ?? 16}</strong></div>
-                  <div><span>IP</span><strong>{live?.server?.connect?.address || '161.153.199.38:27990'}</strong></div>
-                </div>
-                {activePlayers.length > 0 ? (
-                  <div className="competitive-live-players">
-                    {activePlayers.map((p, i) => (
-                      <span key={p.name + i}>{p.name} <small>{p.ping_ms != null ? p.ping_ms + 'ms' : ''}</small></span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="muted">Esperando guerreros.</p>
-                )}
-              </section>
-
-              <div className="competitive-two-col">
-                <section className="competitive-panel">
-                  <div className="competitive-section-head">
-                    <div><span>ÚLTIMAS PARTIDAS</span><h2>Actividad reciente</h2></div>
-                    <button className="link-btn" onClick={() => setTab('matches')}>Ver todas</button>
-                  </div>
-                  <div className="competitive-match-list">
-                    {summary.recentMatches.slice(0, 5).map((match) => <MatchRow key={match.id} match={match} />)}
-                    {!summary.recentMatches.length && <p className="muted">Aún no hay partidas guardadas.</p>}
-                  </div>
-                </section>
-
-                <section className="competitive-panel">
-                  <div className="competitive-section-head">
-                    <div><span>RANKING</span><h2>Guerreros</h2></div>
-                    <button className="link-btn" onClick={() => setTab('players')}>Ver ranking</button>
-                  </div>
-                  <div className="competitive-mini-ranking">
-                    {summary.players.slice(0, 5).map((p, i) => (
-                      <button key={p.steamId} onClick={() => { setSelectedSteamId(p.steamId); setTab('players'); }}>
-                        <b>{i + 1}</b>
-                        <span><strong>{p.name}</strong><small>{p.appearances} partidas · K/D {p.kd}</small></span>
-                        <em>{p.avgPerformance}</em>
-                      </button>
-                    ))}
-                    {!summary.players.length && <p className="muted">El ranking aparecerá al importar partidas.</p>}
-                  </div>
-                </section>
-              </div>
-
-              <section className="competitive-panel">
-                <div className="competitive-section-head">
-                  <div><span>DOJO</span><h2>Esta semana</h2></div>
-                  <button className="link-btn" onClick={() => setTab('dojo')}>Abrir calendario</button>
-                </div>
-                {canViewDojo ? (
-                  <div className="competitive-next-dojo">
-                    {nextDojo.slice(0, 3).map((event) => (
-                      <div key={event.id}>
-                        <span>{fmtEventDate(event.startsAt)}</span>
-                        <strong>{stripDojo(event.title)}</strong>
-                        <small>{event.location}</small>
-                      </div>
-                    ))}
-                    {!nextDojo.length && <p className="muted">No hay entrenamientos agendados esta semana.</p>}
-                  </div>
-                ) : (
-                  <p className="muted">Tu rol no tiene acceso a Events.</p>
-                )}
-              </section>
-            </div>
-          )}
-
-          {tab === 'stats' && (
-            <div className="competitive-stack">
-              <section className="competitive-panel">
-                <div className="competitive-section-head">
-                  <div><span>ARSENAL</span><h2>Rendimiento por arma</h2></div>
-                </div>
-                <div className="competitive-weapons">
-                  {summary.weapons.map((weapon) => (
-                    <WeaponBar key={weapon.weapon} weapon={weapon} maxDamage={maxWeaponDamage} />
-                  ))}
-                  {!summary.weapons.length && <p className="muted">Sin datos de armas todavía.</p>}
-                </div>
-              </section>
-
-              <section className="competitive-panel">
-                <div className="competitive-section-head">
-                  <div><span>PERFORMANCE</span><h2>Ranking competitivo</h2></div>
-                </div>
-                <PlayerTable players={summary.players} onSelect={(id) => { setSelectedSteamId(id); setTab('players'); }} />
-              </section>
-            </div>
+            <DojoOverview
+              summary={summary}
+              weekStart={weekStart}
+              weekEnd={weekEnd}
+              weekEvents={weekEvents}
+              upcomingEvents={upcomingEvents}
+              tournaments={tournaments}
+              canViewEvents={canViewDojo}
+              onWeekOffset={(delta) => setWeekOffset((v) => v + delta)}
+              onToday={() => setWeekOffset(0)}
+              onAvailability={(eventId, availability) => void setAvailability(eventId, availability)}
+              onOpenTraining={() => { setTab('training'); if (canManageDojo) setShowCreate(true); }}
+              onOpenMatches={() => setTab('matches')}
+              onOpenPlayers={() => setTab('players')}
+              onOpenWars={() => setTab('wars')}
+              onOpenTournaments={() => setTab('tournaments')}
+            />
           )}
 
           {tab === 'matches' && (
@@ -694,78 +540,15 @@ export default function Competitive() {
             </div>
           )}
 
-          {tab === 'public' && (
-            <div className="competitive-stack">
-              <section className="competitive-panel">
-                <div className="competitive-section-head">
-                  <div>
-                    <span>QUAKE CLUB · SERVIDORES PÚBLICOS</span>
-                    <h2>Public Arena</h2>
-                  </div>
-                  <small>Se actualiza automáticamente desde la API pública oficial.</small>
-                </div>
-                {publicPlayers.length ? (
-                  <div className="competitive-table-wrap">
-                    <table className="competitive-table public-arena-table">
-                      <thead>
-                        <tr>
-                          <th>Guerrero</th>
-                          <th>Modo</th>
-                          <th>ELO</th>
-                          <th>Partidas</th>
-                          <th>W%</th>
-                          <th>K/D</th>
-                          <th>Vs SkF K/D</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {publicPlayers.flatMap((player) =>
-                          player.modes
-                            .slice()
-                            .sort((a, b) => (a.gameType === 'CA' ? -1 : b.gameType === 'CA' ? 1 : a.gameType.localeCompare(b.gameType)))
-                            .map((mode) => {
-                              const skf = summary.players.find((p) => p.steamId === player.steamId);
-                              const kdDelta =
-                                skf && mode.kd != null ? Math.round((skf.kd - mode.kd) * 100) / 100 : null;
-                              return (
-                                <tr
-                                  key={player.steamId + ':' + mode.gameType}
-                                  className="is-clickable"
-                                  onClick={() => { setSelectedSteamId(player.steamId); setTab('players'); }}
-                                >
-                                  <td><strong>{player.siteName}</strong><small>{player.quakeName || player.steamId}</small></td>
-                                  <td>{mode.gameType}</td>
-                                  <td className="positive">{mode.rating != null ? Math.round(mode.rating) : '—'}</td>
-                                  <td>{mode.totalGames}</td>
-                                  <td>{mode.winRate}%</td>
-                                  <td>{mode.kd ?? 'N/A'}</td>
-                                  <td className={kdDelta != null && kdDelta > 0 ? 'positive' : kdDelta != null && kdDelta < 0 ? 'negative' : ''}>
-                                    {kdDelta == null ? '—' : (kdDelta > 0 ? '+' : '') + kdDelta}
-                                  </td>
-                                </tr>
-                              );
-                            }),
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="competitive-empty-public">
-                    <strong>Aún no hay jugadores vinculados.</strong>
-                    <p className="muted">Cada miembro puede agregar su SteamID64 desde su perfil. El collector hará el resto.</p>
-                  </div>
-                )}
-              </section>
-            </div>
-          )}
-
           {tab === 'wars' && <MatchRoomsTab />}
 
-          {tab === 'dojo' && (
+          {tab === 'tournaments' && <Tournaments />}
+
+          {tab === 'training' && (
             <div className="competitive-stack">
               <section className="competitive-dojo-head">
                 <div>
-                  <div className="competitive-kicker">DOJO · PLAN SEMANAL</div>
+                  <div className="competitive-kicker">ENTRENAMIENTO · PLAN SEMANAL</div>
                   <h2>
                     {new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short' }).format(weekStart)}
                     {' — '}
@@ -837,7 +620,7 @@ export default function Competitive() {
               )}
 
               {!canViewDojo ? (
-                <div className="competitive-panel"><p className="muted">Tu rol no tiene acceso al calendario de eventos.</p></div>
+                <div className="competitive-panel"><p className="muted">Tu rol no tiene acceso al calendario de entrenamientos.</p></div>
               ) : dojoLoading ? (
                 <div className="loading">Cargando semana…</div>
               ) : (
