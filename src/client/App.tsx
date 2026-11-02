@@ -49,6 +49,7 @@ const CustomPage = lazy(() => import('./pages/CustomPage'));
 const News = lazy(() => import('./pages/News'));
 const NewsPost = lazy(() => import('./pages/NewsPost'));
 const Events = lazy(() => import('./pages/Events'));
+const Competitive = lazy(() => import('./pages/Competitive'));
 // The World of Warcraft level race; brings Chart.js with it, so only visitors
 // who open it pay for the charting library.
 const Leveling = lazy(() => import('./pages/Leveling'));
@@ -362,6 +363,14 @@ export default function App() {
               <PublicOr pageKey="leaderboard" publicSlugs={publicSlugs} ready={accessReady}>
                 <Leaderboard />
               </PublicOr>
+            }
+          />
+          <Route
+            path="/competitive"
+            element={
+              <Protected>
+                <Competitive />
+              </Protected>
             }
           />
           {/* Public-capable like the gallery: the list/detail APIs filter by each
