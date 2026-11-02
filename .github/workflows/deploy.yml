@@ -44,6 +44,12 @@ jobs:
           npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT slug,title,show_in_nav,is_public,updated_at,updated_by,layout FROM page_layouts WHERE slug='dojo';"
           echo "=== DOJO PAGE AUDIT ==="
           npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT action,target_type,target_id,actor_id,created_at,meta FROM audit_log WHERE target_type='page' AND target_id='dojo' ORDER BY created_at DESC LIMIT 30;"
+          echo "=== ACTOR 2 ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT id,username,global_name,display_name,status FROM users WHERE id=2;"
+          echo "=== HISTORICAL BOOKMARKS ==="
+          npx wrangler d1 time-travel info skf-mustr -c wrangler.jsonc --timestamp="2026-11-01T15:50:00Z" --json
+          npx wrangler d1 time-travel info skf-mustr -c wrangler.jsonc --timestamp="2026-11-02T15:10:00Z" --json
+          npx wrangler d1 time-travel info skf-mustr -c wrangler.jsonc --timestamp="2026-11-02T15:20:00Z" --json
           echo "=== CURRENT TIME TRAVEL INFO ==="
           npx wrangler d1 time-travel info skf-mustr -c wrangler.jsonc --json
 
