@@ -111,12 +111,39 @@ competitive.get('/member/:userId/public', async (c) => {
       .where(eq(s.quakePublicCurrent.userId, userId)),
     loadCompetitiveStore(c.env),
   ]);
-  const skf = summarizeCompetitive(store).players.find((p) => p.steamId === link.steamId) ?? null;
+  const summary = summarizeCompetitive(store);
+  const skf = summary.players.find((p) => p.steamId === link.steamId) ?? null;
+  const recentMatches = summary.recentMatches
+    .map((match) => {
+      const player = match.players.find((p) => p.steamId === link.steamId);
+      if (!player) return null;
+      return {
+        id: match.id,
+        map: match.map,
+        gameType: match.gameType,
+        playedAt: match.playedAt,
+        result: match.clanResult,
+        scoreUs: match.scoreUs,
+        scoreThem: match.scoreThem,
+        kills: player.kills,
+        deaths: player.deaths,
+        performance: player.performance,
+        eloChange: player.eloChange,
+      };
+    })
+    .filter((match): match is NonNullable<typeof match> => !!match)
+    .slice(0, 3);
+
   return c.json({
     linked: true,
     quakeName: link.quakeName,
+    steamVerified: true,
+    steamIdMasked: `•••••••••••${link.steamId.slice(-6)}`,
+    steamProfileUrl: `https://steamcommunity.com/profiles/${link.steamId}`,
+    updatedAt: summary.updatedAt,
     public: publicRows,
     skf,
+    recentMatches,
   });
 });
 

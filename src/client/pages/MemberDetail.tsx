@@ -26,6 +26,7 @@ import MemberActivity from '../components/MemberActivity';
 import SigilEmblem from '../components/SigilEmblem';
 import MemberQuakePerformance from '../components/MemberQuakePerformance';
 import MemberTrainingFocus from '../components/MemberTrainingFocus';
+import { sharePlayerProfile } from '../lib/share';
 
 interface Role {
   id: number;
@@ -83,6 +84,10 @@ interface Member {
   warRecords: WarRecord[];
   bio: string | null;
   steamId: string | null;
+  steamLinked?: boolean;
+  steamIdMasked?: string | null;
+  steamProfileUrl?: string | null;
+  publicSlug?: string;
   quakeName: string | null;
 }
 interface Rank {
@@ -175,12 +180,24 @@ export default function MemberDetail({
   }, [load, can, setError, managementMode]);
 
   useEffect(() => {
-    // Applicants must complete their profile before approval, so preserve that
-    // onboarding behavior. Everyone else lands in the same read-only public view.
-    setEditingProfile(!!viewer?.pending && viewer.id === memberId);
+    // Applicants must complete their profile before approval. An authenticated
+    // member may also deep-link straight into editing from the competitive CTA.
+    const requested = new URLSearchParams(window.location.search).get('edit') === 'profile';
+    setEditingProfile(
+      (!!viewer?.pending && viewer.id === memberId) ||
+      (!!requested && viewer?.id === memberId),
+    );
   }, [viewer?.id, viewer?.pending, memberId]);
 
-  useRecordRecent(member ? { group: 'people', label: memberName(member), to: `/members/${member.id}` } : null);
+  useRecordRecent(
+    member
+      ? {
+          group: 'people',
+          label: memberName(member),
+          to: member.publicSlug ? `/player/${member.publicSlug}` : `/members/${member.id}`,
+        }
+      : null,
+  );
 
   if (loading) return <div className="loading">Loading member…</div>;
   if (!member) return <div className="empty">Member not found.</div>;
@@ -379,16 +396,48 @@ export default function MemberDetail({
           busy={busy}
           onSet={setProfileImage}
         />
-        <div>
-          <h2>{displayName}</h2>
+        <div className="member-head-copy">
+          <div className="member-head-title">
+            <h2>{displayName}</h2>
+            <button
+              type="button"
+              className="mini member-share"
+              onClick={() =>
+                void sharePlayerProfile({
+                  name: displayName,
+                  rank: member.rank?.name,
+                  path: member.publicSlug ? `/player/${member.publicSlug}` : `/members/${member.id}`,
+                })
+              }
+            >
+              Compartir
+            </button>
+          </div>
           {showsDiscordHandle && <div className="muted small">Discord: {discordHandle}</div>}
           <div className="member-sub muted">
             <span className="rank-chip">{member.rank ? member.rank.name : 'Unranked'}</span>
             <span className={`status-chip status-${member.status}`}>{member.status}</span>
-            <span>joined {new Date(member.joinedAt * 1000).toLocaleDateString()}</span>
+            <span>Desde {new Date(member.joinedAt * 1000).toLocaleDateString('es-CL')}</span>
           </div>
+          {member.steamLinked && (
+            <div className="member-steam-line">
+              <span className="steam-verified">✓ Steam verificado</span>
+              {member.steamIdMasked && <span className="muted small">{member.steamIdMasked}</span>}
+              {member.steamProfileUrl && (
+                <a href={member.steamProfileUrl} target="_blank" rel="noopener noreferrer">
+                  Ver perfil Steam ↗
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </header>
+
+      <MemberQuakePerformance
+        memberId={member.id}
+        isSelf={isSelf}
+        editHref={member.publicSlug ? `/player/${member.publicSlug}?edit=profile` : `/members/${member.id}?edit=profile`}
+      />
 
       {showAdminBar && (
         <div className="member-admin-bar">
@@ -573,6 +622,16 @@ export default function MemberDetail({
                   })
                 }
                 onCancel={() => setEditingProfile(false)}
+                onUnlinkSteam={
+                  isSelf && member.steamId
+                    ? () =>
+                        run(async () => {
+                          if (!window.confirm('¿Desvincular tu cuenta Steam de este perfil?')) return;
+                          await api.patch(`/members/${member.id}/profile`, { steamId: null });
+                          return 'Cuenta Steam desvinculada.';
+                        })
+                    : undefined
+                }
               />
             ) : member.bio ? (
               <p className="bio">{member.bio}</p>
@@ -581,7 +640,6 @@ export default function MemberDetail({
             )}
           </section>
 
-          <MemberQuakePerformance memberId={member.id} />
           {viewer && (isSelf || can('training.view')) && (
             <MemberTrainingFocus memberId={member.id} managementMode={managementMode} />
           )}
@@ -907,6 +965,7 @@ function ProfileEditor({
   isSelf,
   onSave,
   onCancel,
+  onUnlinkSteam,
 }: {
   displayName: string;
   bio: string;
@@ -915,6 +974,7 @@ function ProfileEditor({
   isSelf: boolean;
   onSave: (v: { displayName: string; bio: string; steamId: string | null }) => void;
   onCancel: () => void;
+  onUnlinkSteam?: () => void;
 }) {
   const [name, setName] = useState(displayName);
   const [text, setText] = useState(bio);
@@ -946,7 +1006,7 @@ function ProfileEditor({
           <>
             <a className="steam-link-button" href="/api/auth/steam/link">
               <span className="steam-link-mark" aria-hidden>STEAM</span>
-              {steamId ? 'Volver a vincular cuenta Steam' : 'Vincular cuenta Steam'}
+              {steamId ? 'Cambiar cuenta Steam' : 'Vincular cuenta Steam'}
             </a>
             <div className="steam-link-divider"><span>o</span></div>
           </>
@@ -969,6 +1029,11 @@ function ProfileEditor({
             ? 'También puedes ingresar el SteamID64 manualmente. Se usa para vincular tu identidad de Quake Club y seguir tus stats aunque cambies de nick.'
             : 'SteamID64 del jugador. Son 17 dígitos y permite seguir sus stats aunque cambie de nick.'}
         </p>
+        {isSelf && steamId && onUnlinkSteam && (
+          <button type="button" className="mini steam-unlink" disabled={busy} onClick={onUnlinkSteam}>
+            Desvincular Steam
+          </button>
+        )}
       </div>
 
       <label className="field">
