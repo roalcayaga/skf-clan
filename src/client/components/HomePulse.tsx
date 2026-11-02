@@ -160,7 +160,9 @@ export default function HomePulse() {
           <span>SKF PULSE</span>
           <h2>Qué está pasando en el Templo</h2>
         </div>
-        <Link to="/competitive">SkF Dojo →</Link>
+        <Link to={viewer ? '/competitive' : '/login'}>
+          {viewer ? 'SkF Dojo →' : 'Entrar al Templo →'}
+        </Link>
       </header>
 
       <div className="pulse-grid">
@@ -197,7 +199,7 @@ export default function HomePulse() {
                     pulse.yesterday.matches + ' partidas · ' + pulse.yesterday.wins + 'W/' + pulse.yesterday.losses + 'L' +
                       (pulse.yesterday.warrior ? '\nMVP: ' + pulse.yesterday.warrior.name + ' · Perf ' + pulse.yesterday.warrior.avgPerformance : '') +
                       (pulse.yesterday.topRail?.rail ? '\nMejor Rail: ' + pulse.yesterday.topRail.name + ' · ' + pulse.yesterday.topRail.rail + '%' : ''),
-                    '/competitive',
+                    viewer ? '/competitive' : '/',
                   )
                 }
               >
@@ -225,7 +227,7 @@ export default function HomePulse() {
                   shareWhatsApp(
                     'Guerrero del Día',
                     pulse.warrior!.name + ' · K/D ' + pulse.warrior!.kd + ' · Performance ' + pulse.warrior!.avgPerformance,
-                    '/competitive',
+                    viewer ? '/competitive' : '/',
                   )
                 }
               >
@@ -237,19 +239,31 @@ export default function HomePulse() {
           )}
         </article>
 
-        <article className="pulse-card pulse-dojo">
-          <div className="pulse-card-kicker">PRÓXIMO DOJO</div>
-          {pulse?.nextDojo ? (
-            <>
-              <time>{fmtDateTime(pulse.nextDojo.startsAt)}</time>
-              <h3>{stripDojo(pulse.nextDojo.title)}</h3>
-              <p>{pulse.nextDojo.description || pulse.nextDojo.location}</p>
-              <Link to="/competitive">Ver Dojo →</Link>
-            </>
-          ) : (
-            <p className="muted">No hay entrenamiento agendado todavía.</p>
-          )}
-        </article>
+        {viewer ? (
+          <article className="pulse-card pulse-dojo">
+            <div className="pulse-card-kicker">PRÓXIMO DOJO</div>
+            {pulse?.nextDojo ? (
+              <>
+                <time>{fmtDateTime(pulse.nextDojo.startsAt)}</time>
+                <h3>{stripDojo(pulse.nextDojo.title)}</h3>
+                <p>{pulse.nextDojo.description || pulse.nextDojo.location}</p>
+                <Link to="/competitive">Ver Dojo →</Link>
+              </>
+            ) : (
+              <p className="muted">No hay entrenamiento agendado todavía.</p>
+            )}
+          </article>
+        ) : (
+          <article className="pulse-card pulse-member-zone">
+            <div className="pulse-card-kicker">ZONA DE MIEMBROS</div>
+            <h3>El Dojo vive adentro</h3>
+            <p>
+              Entrenamientos, wars, RSVP, rendimiento, Match Room y herramientas competitivas
+              están reservadas para miembros de SkF.
+            </p>
+            <Link to="/login">Entrar con Discord →</Link>
+          </article>
+        )}
       </div>
 
       {viewer && (
@@ -274,96 +288,133 @@ export default function HomePulse() {
         </article>
       )}
 
-      <div className="pulse-grid pulse-grid-lower">
-        <article className="pulse-card">
-          <div className="pulse-card-kicker">EN ALZA · 7 DÍAS</div>
-          {pulse?.rising.length ? (
-            <ol className="pulse-rising">
-              {pulse.rising.map((p, i) => (
-                <li key={p.steamId}>
-                  <b>{i + 1}</b>
-                  <span><strong>{p.name}</strong><small>{p.appearances} partidas</small></span>
-                  <em>
-                    {p.performanceDelta != null && p.performanceDelta > 0
-                      ? '+' + p.performanceDelta + ' perf'
-                      : p.kdDelta != null
-                        ? (p.kdDelta > 0 ? '+' : '') + p.kdDelta + ' K/D'
-                        : 'nuevo'}
-                  </em>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="muted">Necesitamos dos semanas comparables para detectar quién viene subiendo.</p>
-          )}
-        </article>
+      {viewer ? (
+        <div className="pulse-grid pulse-grid-lower">
+          <article className="pulse-card">
+            <div className="pulse-card-kicker">EN ALZA · 7 DÍAS</div>
+            {pulse?.rising.length ? (
+              <ol className="pulse-rising">
+                {pulse.rising.map((p, i) => (
+                  <li key={p.steamId}>
+                    <b>{i + 1}</b>
+                    <span><strong>{p.name}</strong><small>{p.appearances} partidas</small></span>
+                    <em>
+                      {p.performanceDelta != null && p.performanceDelta > 0
+                        ? '+' + p.performanceDelta + ' perf'
+                        : p.kdDelta != null
+                          ? (p.kdDelta > 0 ? '+' : '') + p.kdDelta + ' K/D'
+                          : 'nuevo'}
+                    </em>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="muted">Necesitamos dos semanas comparables para detectar quién viene subiendo.</p>
+            )}
+          </article>
 
-        <article className="pulse-card pulse-feed-card">
-          <div className="pulse-card-kicker">CLAN PULSE</div>
-          {pulse?.feed.length ? (
-            <ul className="pulse-feed">
-              {pulse.feed.slice(0, 6).map((event) => (
-                <li key={event.id}>
-                  <div>
-                    <strong>{event.title}</strong>
-                    {event.body && <span>{event.body}</span>}
-                    <small>{fmtAgo(event.occurredAt)}</small>
-                  </div>
-                  {event.sharePath && (
-                    <button onClick={() => shareWhatsApp(event.title, event.body || '', event.sharePath!)}>↗</button>
+          <article className="pulse-card pulse-feed-card">
+            <div className="pulse-card-kicker">CLAN PULSE</div>
+            {pulse?.feed.length ? (
+              <ul className="pulse-feed">
+                {pulse.feed.slice(0, 6).map((event) => (
+                  <li key={event.id}>
+                    <div>
+                      <strong>{event.title}</strong>
+                      {event.body && <span>{event.body}</span>}
+                      <small>{fmtAgo(event.occurredAt)}</small>
+                    </div>
+                    {event.sharePath && (
+                      <button onClick={() => shareWhatsApp(event.title, event.body || '', event.sharePath!)}>↗</button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">El feed se irá llenando con partidas, ELO, récords y actividad relevante.</p>
+            )}
+          </article>
+
+          <article className="pulse-card pulse-public-arena">
+            <div className="pulse-card-kicker">PUBLIC ARENA · CA</div>
+            {pulse?.publicArena.length ? (
+              <ol className="pulse-rising">
+                {pulse.publicArena.map((p, i) => (
+                  <li key={p.userId}>
+                    <b>{i + 1}</b>
+                    <span><strong>{p.name}</strong><small>{p.totalGames} partidas · K/D {p.kd ?? 'N/A'}</small></span>
+                    <em>{p.rating != null ? Math.round(p.rating) + ' ELO' : '—'}</em>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="muted">Aparecerá cuando los guerreros vinculen su SteamID64.</p>
+            )}
+            <Link to="/competitive">Ver Public Arena →</Link>
+          </article>
+
+          <article className="pulse-card pulse-legacy">
+            <div className="pulse-card-kicker">VIEJAS DINASTÍAS</div>
+            {pulse?.legacy ? (
+              <div className="pulse-legacy-body">
+                {pulse.legacy.profileImageUrl && <img src={pulse.legacy.profileImageUrl} alt="" />}
+                <div>
+                  <h3>{pulse.legacy.name}</h3>
+                  {pulse.legacy.yearsActive && <span>{pulse.legacy.yearsActive}</span>}
+                  {pulse.legacy.currentNick && (
+                    <span className="pulse-legacy-current">
+                      {pulse.legacy.currentNick.toLowerCase() === pulse.legacy.name.toLowerCase()
+                        ? 'Activo actualmente'
+                        : `Hoy: ${pulse.legacy.currentNick}`}
+                    </span>
                   )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted">El feed se irá llenando con partidas, ELO, récords y actividad relevante.</p>
-          )}
-        </article>
-
-        <article className="pulse-card pulse-public-arena">
-          <div className="pulse-card-kicker">PUBLIC ARENA · CA</div>
-          {pulse?.publicArena.length ? (
-            <ol className="pulse-rising">
-              {pulse.publicArena.map((p, i) => (
-                <li key={p.userId}>
-                  <b>{i + 1}</b>
-                  <span><strong>{p.name}</strong><small>{p.totalGames} partidas · K/D {p.kd ?? 'N/A'}</small></span>
-                  <em>{p.rating != null ? Math.round(p.rating) + ' ELO' : '—'}</em>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="muted">Aparecerá cuando los guerreros vinculen su SteamID64.</p>
-          )}
-          <Link to="/competitive">Ver Public Arena →</Link>
-        </article>
-
-        <article className="pulse-card pulse-legacy">
-          <div className="pulse-card-kicker">VIEJAS DINASTÍAS</div>
-          {pulse?.legacy ? (
-            <div className="pulse-legacy-body">
-              {pulse.legacy.profileImageUrl && <img src={pulse.legacy.profileImageUrl} alt="" />}
-              <div>
-                <h3>{pulse.legacy.name}</h3>
-                {pulse.legacy.yearsActive && <span>{pulse.legacy.yearsActive}</span>}
-                {pulse.legacy.currentNick && (
-                  <span className="pulse-legacy-current">
-                    {pulse.legacy.currentNick.toLowerCase() === pulse.legacy.name.toLowerCase()
-                      ? 'Activo actualmente'
-                      : `Hoy: ${pulse.legacy.currentNick}`}
-                  </span>
-                )}
-                {pulse.legacy.note && <p>{pulse.legacy.note}</p>}
-                {pulse.legacy.ownerUserId && (
-                  <Link to={`/members/${pulse.legacy.ownerUserId}`}>Ver perfil actual →</Link>
-                )}
+                  {pulse.legacy.note && <p>{pulse.legacy.note}</p>}
+                  {pulse.legacy.ownerUserId && (
+                    <Link to={`/members/${pulse.legacy.ownerUserId}`}>Ver perfil actual →</Link>
+                  )}
+                </div>
               </div>
+            ) : (
+              <p className="muted">La historia del clan aparecerá aquí en rotación.</p>
+            )}
+          </article>
+        </div>
+      ) : (
+        <div className="pulse-grid pulse-grid-public">
+          <article className="pulse-card pulse-legacy">
+            <div className="pulse-card-kicker">VIEJAS DINASTÍAS</div>
+            {pulse?.legacy ? (
+              <div className="pulse-legacy-body">
+                {pulse.legacy.profileImageUrl && <img src={pulse.legacy.profileImageUrl} alt="" />}
+                <div>
+                  <h3>{pulse.legacy.name}</h3>
+                  {pulse.legacy.yearsActive && <span>{pulse.legacy.yearsActive}</span>}
+                  {pulse.legacy.currentNick && (
+                    <span className="pulse-legacy-current">
+                      {pulse.legacy.currentNick.toLowerCase() === pulse.legacy.name.toLowerCase()
+                        ? 'Activo actualmente'
+                        : `Hoy: ${pulse.legacy.currentNick}`}
+                    </span>
+                  )}
+                  {pulse.legacy.note && <p>{pulse.legacy.note}</p>}
+                </div>
+              </div>
+            ) : (
+              <p className="muted">La historia del clan aparecerá aquí en rotación.</p>
+            )}
+          </article>
+
+          <article className="pulse-card pulse-public-links">
+            <div className="pulse-card-kicker">MEMORIA DEL TEMPLO</div>
+            <h3>Desde 1998</h3>
+            <p>Conoce los hitos, historias y capítulos que construyeron Shaolin Kung Fu.</p>
+            <div className="pulse-public-actions">
+              <Link to="/history">Historia →</Link>
+              <Link to="/news">Crónicas →</Link>
             </div>
-          ) : (
-            <p className="muted">La historia del clan aparecerá aquí en rotación.</p>
-          )}
-        </article>
-      </div>
+          </article>
+        </div>
+      )}
     </section>
   );
 }

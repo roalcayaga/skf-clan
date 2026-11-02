@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useSession } from '../lib/session';
 import PageRenderer from '../components/PageRenderer';
@@ -28,5 +28,27 @@ export default function Home() {
   // A logged-out visitor may only see the home page when it's marked public.
   // (PageRenderer still hides members-only and role-only modules from them.)
   if (!viewer && !state.isPublic) return <Navigate to="/login" replace />;
-  return <><HomePulse /><PageRenderer layout={state.layout} /></>;
+
+  return (
+    <>
+      {!viewer && (
+        <section className="public-home-hero">
+          <div className="public-home-kicker">SHAOLIN KUNG FU · DESDE 1998</div>
+          <h1>La Leyenda del Dragón</h1>
+          <p>
+            SkF es una comunidad nacida en los primeros años de Quake. Historia, crónicas y actividad
+            del clan son públicas; el Dojo y las herramientas competitivas quedan reservadas para miembros.
+          </p>
+          <div className="public-home-actions">
+            <Link className="btn-cta primary" to="/history">Ver Historia</Link>
+            <Link className="btn-cta" to="/news">Leer Crónicas</Link>
+            <Link className="btn-cta ghost" to="/login">Entrar con Discord</Link>
+          </div>
+        </section>
+      )}
+
+      <HomePulse />
+      <PageRenderer layout={state.layout} />
+    </>
+  );
 }
