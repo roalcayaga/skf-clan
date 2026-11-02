@@ -3,6 +3,9 @@ import { api } from '../lib/api';
 import '../competitive.css';
 import { useSession } from '../lib/session';
 import MatchRoomsTab from '../components/MatchRoomsTab';
+import DojoOverview from '../components/DojoOverview';
+import Tournaments from './Tournaments';
+import type { TournamentSummary } from '../lib/tournaments';
 import type {
   CompetitiveMatchView,
   CompetitivePlayerSummary,
@@ -11,7 +14,7 @@ import type {
   CompetitiveWeaponSummary,
 } from '../../shared/competitive';
 
-type Tab = 'overview' | 'stats' | 'matches' | 'players' | 'public' | 'wars' | 'dojo';
+type Tab = 'overview' | 'matches' | 'players' | 'wars' | 'tournaments' | 'training';
 type Availability = 'available' | 'tentative' | 'unavailable';
 type Recurrence = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly';
 
@@ -32,32 +35,6 @@ interface DojoEvent {
   mySignup: { roleId: number | null; availability: Availability } | null;
 }
 
-interface LivePlayer {
-  name: string;
-  kind?: 'player' | 'bot' | 'spectator';
-  score?: number;
-  ping_ms?: number;
-}
-
-interface LiveServer {
-  map?: string;
-  gametype?: string;
-  players?: number;
-  max_players?: number;
-  roster?: LivePlayer[];
-  match?: {
-    state?: string | null;
-    red_score?: number | null;
-    blue_score?: number | null;
-    clock?: string | null;
-  } | null;
-  connect?: { address?: string; url?: string | null };
-}
-
-interface LivePayload {
-  online: boolean;
-  server?: LiveServer;
-}
 interface PublicMode {
   gameType: string;
   username: string;
@@ -100,17 +77,6 @@ const RESULT_LABEL: Record<CompetitiveResult, string> = {
   win: 'W',
   loss: 'L',
   draw: 'D',
-};
-
-const WEAPON_LABELS: Record<string, string> = {
-  RL: 'Rocket Launcher',
-  LG: 'Lightning Gun',
-  RG: 'Railgun',
-  SG: 'Shotgun',
-  PG: 'Plasma Gun',
-  GL: 'Grenade Launcher',
-  MG: 'Machinegun',
-  HMG: 'Heavy Machinegun',
 };
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -197,29 +163,6 @@ function MatchRow({ match }: { match: CompetitiveMatchView }) {
   );
 }
 
-function WeaponBar({ weapon, maxDamage }: { weapon: CompetitiveWeaponSummary; maxDamage: number }) {
-  const width = maxDamage > 0 ? Math.max(4, (weapon.damage / maxDamage) * 100) : 0;
-  return (
-    <div className="competitive-weapon">
-      <div className="competitive-weapon-head">
-        <div>
-          <strong>{WEAPON_LABELS[weapon.weapon] || weapon.weapon}</strong>
-          <span>{weapon.weapon}</span>
-        </div>
-        <b>{weapon.accuracy}%</b>
-      </div>
-      <div className="competitive-bar">
-        <span style={{ width: width + '%' }} />
-      </div>
-      <div className="competitive-weapon-meta">
-        <span>{fmtNumber(weapon.kills)} kills</span>
-        <span>{fmtNumber(weapon.damage)} dmg</span>
-        <span>{fmtNumber(weapon.hits)}/{fmtNumber(weapon.shots)} hits</span>
-      </div>
-    </div>
-  );
-}
-
 function FormDots({ form }: { form: CompetitiveResult[] }) {
   if (!form.length) return <span className="muted">—</span>;
   return (
@@ -287,9 +230,11 @@ export default function Competitive() {
   const [selectedSteamId, setSelectedSteamId] = useState<string | null>(null);
   const [publicPlayers, setPublicPlayers] = useState<PublicArenaPlayer[]>([]);
 
-  const [live, setLive] = useState<LivePayload | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
+  const [weekEvents, setWeekEvents] = useState<DojoEvent[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<DojoEvent[]>([]);
   const [dojo, setDojo] = useState<DojoEvent[]>([]);
+  const [tournaments, setTournaments] = useState<TournamentSummary[]>([]);
   const [dojoLoading, setDojoLoading] = useState(false);
   const [dojoError, setDojoError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -320,14 +265,6 @@ export default function Competitive() {
     }
   }
 
-  async function loadLive() {
-    try {
-      setLive(await api.get<LivePayload>('/skf/server-status'));
-    } catch {
-      setLive({ online: false });
-    }
-  }
-
   async function loadPublicArena() {
     try {
       const data = await api.get<{ players: PublicArenaPlayer[] }>('/competitive/public');
@@ -351,11 +288,22 @@ export default function Competitive() {
     setDojoError(null);
     const from = Math.floor(weekStart.getTime() / 1000);
     const to = Math.floor(weekEnd.getTime() / 1000) - 1;
+    const now = Math.floor(Date.now() / 1000);
+    const horizon = now + 30 * 86_400;
     try {
-      const data = await api.get<{ events: DojoEvent[] }>('/events?from=' + from + '&to=' + to);
-      setDojo(data.events.filter((event) => /^DOJO\s*[·:-]/i.test(event.title)));
+      const [weekData, upcomingData, tournamentData] = await Promise.all([
+        api.get<{ events: DojoEvent[] }>('/events?from=' + from + '&to=' + to),
+        api.get<{ events: DojoEvent[] }>('/events?from=' + now + '&to=' + horizon),
+        api.get<{ tournaments: TournamentSummary[] }>('/tournaments'),
+      ]);
+      setWeekEvents(weekData.events);
+      setUpcomingEvents(upcomingData.events);
+      setDojo(weekData.events.filter((event) => /^DOJO\s*[·:-]/i.test(event.title)));
+      setTournaments(tournamentData.tournaments);
     } catch (err) {
-      setDojoError(err instanceof Error ? err.message : 'No se pudo cargar el Dojo.');
+      setDojoError(err instanceof Error ? err.message : 'No se pudo cargar el calendario del Dojo.');
+      setWeekEvents([]);
+      setUpcomingEvents([]);
       setDojo([]);
     } finally {
       setDojoLoading(false);
@@ -365,9 +313,6 @@ export default function Competitive() {
   useEffect(() => {
     void loadStats();
     void loadPublicArena();
-    void loadLive();
-    const timer = window.setInterval(() => void loadLive(), 30_000);
-    return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -449,9 +394,6 @@ export default function Competitive() {
   const selectedPublicCA =
     selectedPublic?.modes.find((m) => m.gameType === 'CA') ?? selectedPublic?.modes[0] ?? null;
 
-  const maxWeaponDamage = Math.max(1, ...summary.weapons.map((w) => w.damage));
-  const activePlayers = live?.server?.roster?.filter((p) => p.kind !== 'spectator' && p.kind !== 'bot') ?? [];
-  const nextDojo = [...dojo].sort((a, b) => a.startsAt - b.startsAt).filter((e) => e.endsAt >= Date.now() / 1000);
 
   const days = useMemo(
     () =>
@@ -472,9 +414,9 @@ export default function Competitive() {
     <div className="competitive-hub">
       <header className="competitive-hero">
         <div>
-          <div className="competitive-kicker">SHAOLIN KUNG FU · ARENA</div>
-          <h1>SkF Arena</h1>
-          <p>Partidas, guerreros, armas, servidor y entrenamiento semanal en un solo lugar.</p>
+          <div className="competitive-kicker">SHAOLIN KUNG FU · DOJO</div>
+          <h1>SkF Dojo</h1>
+          <p>Entrenar. Competir. Evolucionar. La actividad deportiva y competitiva de SkF en un solo lugar.</p>
         </div>
         <div className="competitive-hero-actions">
           {summary.updatedAt && (
@@ -488,15 +430,14 @@ export default function Competitive() {
         </div>
       </header>
 
-      <nav className="competitive-tabs" aria-label="SkF Arena">
+      <nav className="competitive-tabs" aria-label="SkF Dojo">
         {([
           ['overview', 'Resumen'],
-          ['stats', 'Stats'],
-          ['matches', 'Partidas'],
           ['players', 'Guerreros'],
-          ['public', 'Public Arena'],
-          ['wars', 'Match Room'],
-          ['dojo', 'Dojo'],
+          ['matches', 'Partidas'],
+          ['wars', 'Wars'],
+          ['tournaments', 'Torneos'],
+          ['training', 'Entrenamiento'],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -511,7 +452,7 @@ export default function Competitive() {
 
       {statsError && <div className="competitive-alert">{statsError}</div>}
       {loading ? (
-        <div className="loading">Cargando SkF Arena…</div>
+        <div className="loading">Cargando SkF Dojo…</div>
       ) : (
         <>
           {tab === 'overview' && (
