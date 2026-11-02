@@ -980,6 +980,65 @@ button.active {
   resize: vertical;
 }
 
+.steam-link-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0.35rem 0 0.15rem;
+}
+
+.steam-link-button {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 38px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid color-mix(in srgb, #66c0f4 48%, var(--color-border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, #1b2838 82%, var(--color-surface));
+  color: #f2f7f8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.steam-link-button:hover {
+  border-color: #66c0f4;
+  background: color-mix(in srgb, #1b2838 70%, #66c0f4 30%);
+  text-decoration: none;
+}
+
+.steam-link-mark {
+  color: #66c0f4;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.steam-link-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.steam-link-divider::before,
+.steam-link-divider::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: var(--color-border);
+}
+
+@media (max-width: 640px) {
+  .steam-link-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .bio-actions {
   display: flex;
   gap: 0.5rem;
