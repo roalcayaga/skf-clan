@@ -85,3 +85,19 @@ UPDATE legacy_members SET note = coalesce(note, 'Fundador') WHERE lower(name) = 
 UPDATE legacy_members SET note = coalesce(note, 'El eterno capitán'), current_nick = 'VaSSagO' WHERE lower(name) = lower('VaSSagO');
 UPDATE legacy_members SET current_nick = 'alk4pone' WHERE lower(name) = lower('Ar3Z');
 UPDATE legacy_members SET current_nick = 'Hakai' WHERE lower(name) = lower('AS3SIN0');
+
+-- Link historical identities immediately when the current account already exists.
+UPDATE legacy_members
+SET owner_user_id = (
+  SELECT users.id
+  FROM users
+  WHERE lower(coalesce(users.display_name, users.global_name, users.username)) = lower(legacy_members.current_nick)
+  LIMIT 1
+)
+WHERE current_nick IS NOT NULL
+  AND owner_user_id IS NULL
+  AND EXISTS (
+    SELECT 1
+    FROM users
+    WHERE lower(coalesce(users.display_name, users.global_name, users.username)) = lower(legacy_members.current_nick)
+  );
