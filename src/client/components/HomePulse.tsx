@@ -70,6 +70,17 @@ interface PulseData {
     location: string;
   } | null;
   feed: PulseEvent[];
+  publicArena: {
+    userId: number;
+    name: string;
+    gameType: string;
+    rating: number | null;
+    totalGames: number;
+    wins: number;
+    losses: number;
+    kd: number | null;
+    capturedAt: number;
+  }[];
   legacy: {
     id: number;
     name: string;
@@ -370,6 +381,24 @@ export default function HomePulse() {
           ) : (
             <p className="muted">El feed se irá llenando con partidas, ELO, récords y actividad relevante.</p>
           )}
+        </article>
+
+        <article className="pulse-card pulse-public-arena">
+          <div className="pulse-card-kicker">PUBLIC ARENA · CA</div>
+          {pulse?.publicArena.length ? (
+            <ol className="pulse-rising">
+              {pulse.publicArena.map((p, i) => (
+                <li key={p.userId}>
+                  <b>{i + 1}</b>
+                  <span><strong>{p.name}</strong><small>{p.totalGames} partidas · K/D {p.kd ?? 'N/A'}</small></span>
+                  <em>{p.rating != null ? Math.round(p.rating) + ' ELO' : '—'}</em>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="muted">Aparecerá cuando los guerreros vinculen su SteamID64.</p>
+          )}
+          <Link to="/competitive">Ver Public Arena →</Link>
         </article>
 
         <article className="pulse-card pulse-legacy">
