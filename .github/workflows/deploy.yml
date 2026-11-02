@@ -37,6 +37,17 @@ jobs:
       - name: Build and typecheck
         run: npm run build
 
+      - name: Temporarily disable external chat link
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'ops/disable-chat-link' && env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          echo "=== BEFORE ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT slug,title,layout,updated_at,updated_by FROM page_layouts WHERE slug='chat';"
+          echo "=== UPDATE ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "UPDATE page_layouts SET layout=json_set(layout, '$.rows[0].columns[0].modules[0].config.html', '<p>🥋 EL DOJO DEL DRAGÓN</p><p>El punto de encuentro del clan. Salas de chat para coordinar entrenamientos, amistoso,</p><p>comentar torneos y hablar de lo que sea — solo miembros.</p><p><strong>Chat temporalmente deshabilitado mientras revisamos la alerta de seguridad de Google.</strong></p>'), updated_at=unixepoch() WHERE slug='chat';"
+          echo "=== AFTER ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT slug,title,layout,updated_at,updated_by FROM page_layouts WHERE slug='chat';"
+
+
       - name: Run tests
         run: npm test
 
