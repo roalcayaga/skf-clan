@@ -8743,6 +8743,27 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
   text-transform: uppercase;
 }
 
+.skf-legacy-current {
+  padding: 3px 7px;
+  border: 1px solid rgba(0, 217, 245, 0.2);
+  border-radius: 999px;
+  color: #00d9f5;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.skf-legacy-owner-link {
+  align-self: flex-start;
+  color: #00d9f5;
+  font-size: 10px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.skf-legacy-owner-link:hover {
+  text-decoration: underline;
+}
+
 .skf-legacy-note {
   max-width: 720px;
   color: #819399;
