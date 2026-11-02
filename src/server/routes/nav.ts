@@ -100,13 +100,13 @@ function normalizeSkfNav(config: NavConfig): NavConfig {
     );
   if (hasDojo(items)) return { ...config, items };
 
-  const rosterIndex = items.findIndex(
-    (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'roster',
+  const homeIndex = items.findIndex(
+    (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'home',
   );
   const adminIndex = items.findIndex(
     (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'admin',
   );
-  const insertAt = rosterIndex >= 0 ? rosterIndex : adminIndex >= 0 ? adminIndex : items.length;
+  const insertAt = homeIndex >= 0 ? homeIndex + 1 : adminIndex >= 0 ? adminIndex : items.length;
   items.splice(insertAt, 0, {
     id: 'skf-dojo',
     type: 'link',
@@ -157,7 +157,9 @@ nav.get('/meta', requirePermission('pages.manage'), async (c) => {
     nav: navConfig,
     pages: pages.filter((p) => p.slug !== HOME_SLUG),
     roles,
-    builtins: Object.values(BUILTIN_TARGETS).map((b) => ({ key: b.key, label: b.label })),
+    builtins: Object.values(BUILTIN_TARGETS)
+      .filter((b) => b.key !== 'events' && b.key !== 'tournaments')
+      .map((b) => ({ key: b.key, label: b.label })),
   });
 });
 
