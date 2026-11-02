@@ -13,6 +13,10 @@ svg {
   vertical-align: -0.125em;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   background: var(--color-bg);
@@ -8967,11 +8971,26 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
 @media (max-width: 720px) {
   .topbar {
     gap: 0.65rem;
-    padding: 0.55rem 0.85rem;
+    padding-top: max(0.55rem, env(safe-area-inset-top));
+    padding-right: max(0.85rem, env(safe-area-inset-right));
+    padding-bottom: 0.55rem;
+    padding-left: max(0.85rem, env(safe-area-inset-left));
   }
 
   .content {
-    padding: 1rem 14px 2.5rem;
+    padding-top: 1rem;
+    padding-right: max(14px, env(safe-area-inset-right));
+    padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+    padding-left: max(14px, env(safe-area-inset-left));
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  .upload-btn {
+    touch-action: manipulation;
   }
 
   .panel {
