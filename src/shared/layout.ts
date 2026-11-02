@@ -307,6 +307,7 @@ export const RESERVED_PAGE_SLUGS = [
   'news',
   'roster',
   'events',
+  'competitive',
   'leveling',
   'members',
   'admin',

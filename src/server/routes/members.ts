@@ -356,7 +356,7 @@ members.get('/:id', requireUser, async (c) => {
   const user = await database.query.users.findFirst({ where: eq(s.users.id, id) });
   if (!user) return c.json({ error: 'No such member' }, 404);
 
-  const [rank, roles, medals, warRecords, profile] = await Promise.all([
+  const [rank, roles, medals, warRecords, profile, quakeLink] = await Promise.all([
     user.rankId ? database.query.ranks.findFirst({ where: eq(s.ranks.id, user.rankId) }) : null,
     database
       .select({
@@ -400,9 +400,10 @@ members.get('/:id', requireUser, async (c) => {
       .where(eq(s.memberWarRecords.userId, id))
       .orderBy(desc(s.memberWarRecords.awardedAt)),
     database.query.profiles.findFirst({ where: eq(s.profiles.userId, id) }),
+    database.query.quakePlayerLinks.findFirst({ where: eq(s.quakePlayerLinks.userId, id) }),
   ]);
 
-  return c.json({ member: { ...user, rank, roles, medals, warRecords, bio: profile?.bio ?? null } });
+  return c.json({ member: { ...user, rank, roles, medals, warRecords, bio: profile?.bio ?? null, steamId: quakeLink?.steamId ?? null, quakeName: quakeLink?.quakeName ?? null } });
 });
 
 /**
@@ -431,6 +432,7 @@ members.patch('/:id/profile', requireUser, async (c) => {
     bio?: string;
     displayName?: string;
     profileImageUrl?: string | null;
+    steamId?: string | null;
   }>();
   const nowSec = Math.floor(Date.now() / 1000);
   const database = db(c.env);
@@ -466,6 +468,42 @@ members.patch('/:id/profile', requireUser, async (c) => {
       .insert(s.profiles)
       .values({ userId: id, bio, updatedAt: nowSec })
       .onConflictDoUpdate({ target: s.profiles.userId, set: { bio, updatedAt: nowSec } });
+  }
+
+  let steamId: string | null | undefined;
+  if (body.steamId !== undefined) {
+    const nextSteamId = body.steamId?.trim() || null;
+    if (nextSteamId !== null && !/^\d{17}$/.test(nextSteamId)) {
+      return c.json({ error: 'Steam ID must be the 17-digit SteamID64 value.' }, 400);
+    }
+
+    if (nextSteamId === null) {
+      await database.delete(s.quakePlayerLinks).where(eq(s.quakePlayerLinks.userId, id));
+      steamId = null;
+    } else {
+      const claimed = await database.query.quakePlayerLinks.findFirst({
+        where: eq(s.quakePlayerLinks.steamId, nextSteamId),
+      });
+      if (claimed && claimed.userId !== id) {
+        return c.json({ error: 'That Steam ID is already linked to another SkF member.' }, 409);
+      }
+      await database
+        .insert(s.quakePlayerLinks)
+        .values({ userId: id, steamId: nextSteamId, quakeName: target.displayName, updatedAt: nowSec })
+        .onConflictDoUpdate({
+          target: s.quakePlayerLinks.userId,
+          set: { steamId: nextSteamId, updatedAt: nowSec },
+        });
+      steamId = nextSteamId;
+    }
+
+    await database.insert(s.auditLog).values({
+      actorId: viewer.id,
+      action: 'member.quake_link',
+      targetType: 'user',
+      targetId: String(id),
+      meta: { steamId: steamId ? steamId.slice(-6) : null },
+    });
   }
 
   let displayName = target.displayName;
@@ -532,7 +570,7 @@ members.patch('/:id/profile', requireUser, async (c) => {
     }
   }
 
-  return c.json({ ok: true, bio, displayName, profileImageUrl, discordSync });
+  return c.json({ ok: true, bio, displayName, profileImageUrl, steamId, discordSync });
 });
 
 /**

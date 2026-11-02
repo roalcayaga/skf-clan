@@ -40,6 +40,10 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Apply D1 migrations
+        if: ${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: npx wrangler d1 migrations apply skf-mustr --remote -c wrangler.jsonc
+
       - name: Deploy to Cloudflare
         if: ${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
         run: npx wrangler deploy -c wrangler.jsonc

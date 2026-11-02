@@ -3,6 +3,8 @@ import { eq } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import * as s from '../../db/schema';
 import type { Env } from '../env';
+import { backfillLegacyCompetitiveStore, persistCompetitiveMatches } from './store';
+import { emitMatchPulse } from './pulse';
 import type {
   CompetitiveMatch,
   CompetitiveMatchPlayer,
@@ -191,6 +193,7 @@ export async function collectCompetitiveStats(
   opts: { maxNew?: number } = {},
 ): Promise<CompetitiveCollectResult> {
   const current = await loadCompetitiveStore(env);
+  await backfillLegacyCompetitiveStore(env, current);
   const known = new Set<string>();
   for (const match of current.matches) {
     if (match.id) known.add(match.id);
@@ -237,6 +240,9 @@ export async function collectCompetitiveStats(
   const matches = [...byId.values()]
     .sort((a, b) => String(b.playedAt).localeCompare(String(a.playedAt)))
     .slice(0, MAX_STORED);
+
+  await persistCompetitiveMatches(env, added, 'skf');
+  for (const match of added) await emitMatchPulse(env, match);
 
   await saveCompetitiveStore(env, {
     version: 1,
