@@ -123,6 +123,18 @@ export default function Events({ managementMode = false }: { managementMode?: bo
     ]).finally(() => setLoading(false));
   }, [canManage]);
 
+  // Shared links use ?event=<id>. Bring that card into view after events load.
+  useEffect(() => {
+    if (loading || events.length === 0) return;
+    const raw = new URLSearchParams(window.location.search).get('event');
+    if (!raw) return;
+    const id = Number(raw);
+    if (!Number.isInteger(id) || !events.some((ev) => ev.id === id)) return;
+    requestAnimationFrame(() => {
+      document.getElementById(`event-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }, [loading, events]);
+
   const create = (payload: EventPayload) =>
     run(async () => {
       await api.post('/events', payload);
@@ -217,7 +229,7 @@ const signup = (
                 />
               </li>
             ) : (
-              <li key={ev.id} className="event-card">
+              <li key={ev.id} id={`event-${ev.id}`} className="event-card">
                 {ev.imageUrl && <img className="event-banner" src={ev.imageUrl} alt="" />}
                 <div className="event-when">{whenLabel(ev.startsAt, ev.endsAt)}</div>
                 <h3>{ev.title}</h3>
@@ -254,7 +266,8 @@ const signup = (
                       endsAt: ev.endsAt,
                       location: ev.location,
                       description: ev.description,
-                      path: '/events',
+                      path: `/events?event=${ev.id}`,
+                      label: `Evento · ${ev.title}`,
                     })
                   }
                 >
