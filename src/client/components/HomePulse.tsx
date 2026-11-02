@@ -199,7 +199,7 @@ export default function HomePulse() {
                     pulse.yesterday.matches + ' partidas · ' + pulse.yesterday.wins + 'W/' + pulse.yesterday.losses + 'L' +
                       (pulse.yesterday.warrior ? '\nMVP: ' + pulse.yesterday.warrior.name + ' · Perf ' + pulse.yesterday.warrior.avgPerformance : '') +
                       (pulse.yesterday.topRail?.rail ? '\nMejor Rail: ' + pulse.yesterday.topRail.name + ' · ' + pulse.yesterday.topRail.rail + '%' : ''),
-                    '/competitive',
+                    viewer ? '/competitive' : '/',
                   )
                 }
               >
@@ -227,7 +227,7 @@ export default function HomePulse() {
                   shareWhatsApp(
                     'Guerrero del Día',
                     pulse.warrior!.name + ' · K/D ' + pulse.warrior!.kd + ' · Performance ' + pulse.warrior!.avgPerformance,
-                    '/competitive',
+                    viewer ? '/competitive' : '/',
                   )
                 }
               >
