@@ -9,12 +9,10 @@ import { Link } from 'react-router-dom';
 import { MorphIcon } from 'morphicons/react';
 import { Trophy } from 'lucide';
 import { api, ApiError } from '../lib/api';
-import { useSession } from '../lib/session';
 import { FORMAT_LABELS } from '../../shared/tournament';
 import { STATUS_LABELS, type TournamentSummary } from '../lib/tournaments';
 
 export default function Tournaments() {
-  useSession();
   const [rows, setRows] = useState<TournamentSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
