@@ -37,6 +37,17 @@ jobs:
       - name: Build and typecheck
         run: npm run build
 
+      - name: Diagnose legacy dojo page
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'diag/recover-legacy-dojo-page' && env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          echo "=== CURRENT DOJO PAGE ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT slug,title,show_in_nav,is_public,updated_at,updated_by,layout FROM page_layouts WHERE slug='dojo';"
+          echo "=== DOJO PAGE AUDIT ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT action,target_type,target_id,actor_id,created_at,meta FROM audit_log WHERE target_type='page' AND target_id='dojo' ORDER BY created_at DESC LIMIT 30;"
+          echo "=== CURRENT TIME TRAVEL INFO ==="
+          npx wrangler d1 time-travel info skf-mustr -c wrangler.jsonc --json
+
+
       - name: Run tests
         run: npm test
 
