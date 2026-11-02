@@ -145,6 +145,25 @@ export async function buildPulseHome(
     .orderBy(desc(s.pulseEvents.occurredAt))
     .limit(12);
 
+  const publicArena = await database
+    .select({
+      userId: s.quakePublicCurrent.userId,
+      name: sql<string>`coalesce(${s.users.displayName}, ${s.users.globalName}, ${s.users.username})`,
+      gameType: s.quakePublicCurrent.gameType,
+      rating: s.quakePublicCurrent.rating,
+      totalGames: s.quakePublicCurrent.totalGames,
+      wins: s.quakePublicCurrent.wins,
+      losses: s.quakePublicCurrent.losses,
+      kd: s.quakePublicCurrent.kd,
+      capturedAt: s.quakePublicCurrent.capturedAt,
+    })
+    .from(s.quakePublicCurrent)
+    .innerJoin(s.users, eq(s.users.id, s.quakePublicCurrent.userId))
+    .where(eq(s.quakePublicCurrent.gameType, 'CA'))
+    .orderBy(desc(s.quakePublicCurrent.rating))
+    .limit(5);
+
+
   const nextDojo = await database
     .select({
       id: s.events.id,
@@ -221,6 +240,7 @@ export async function buildPulseHome(
     rising,
     nextDojo: nextDojo[0] ?? null,
     feed,
+    publicArena,
     legacy,
     personal,
   };
