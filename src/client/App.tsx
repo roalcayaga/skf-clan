@@ -395,14 +395,10 @@ export default function App() {
               </Protected>
             }
           />
-          <Route
-            path="/members/:id"
-            element={
-              <Protected allowPending>
-                <MemberDetail />
-              </Protected>
-            }
-          />
+          {/* Player profiles are public. MemberDetail itself only exposes the
+              sanitized public card unless an authenticated user explicitly edits
+              their own profile or opens the admin management view. */}
+          <Route path="/members/:id" element={<MemberDetail />} />
           <Route
             path="/account"
             element={

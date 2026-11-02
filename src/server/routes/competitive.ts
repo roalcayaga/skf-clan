@@ -87,6 +87,39 @@ competitive.get('/public', requireAuth, async (c) => {
   return c.json({ players: [...players.values()] });
 });
 
+/**
+ * Public snapshot for a member profile. Only current public-arena numbers and
+ * the clan aggregate are returned; private history and Steam identifiers stay
+ * on the authenticated endpoint below.
+ */
+competitive.get('/member/:userId/public', async (c) => {
+  const userId = Number(c.req.param('userId'));
+  const database = db(c.env);
+  const user = await database.query.users.findFirst({ where: eq(s.users.id, userId) });
+  if (!user || user.status === 'pending' || user.status === 'banned') {
+    return c.json({ linked: false, public: [], skf: null }, 404);
+  }
+  const link = await database.query.quakePlayerLinks.findFirst({
+    where: eq(s.quakePlayerLinks.userId, userId),
+  });
+  if (!link) return c.json({ linked: false, public: [], skf: null });
+
+  const [publicRows, store] = await Promise.all([
+    database
+      .select()
+      .from(s.quakePublicCurrent)
+      .where(eq(s.quakePublicCurrent.userId, userId)),
+    loadCompetitiveStore(c.env),
+  ]);
+  const skf = summarizeCompetitive(store).players.find((p) => p.steamId === link.steamId) ?? null;
+  return c.json({
+    linked: true,
+    quakeName: link.quakeName,
+    public: publicRows,
+    skf,
+  });
+});
+
 competitive.get('/member/:userId', requireUser, async (c) => {
   const userId = Number(c.req.param('userId'));
   const database = db(c.env);
