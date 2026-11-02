@@ -1142,3 +1142,422 @@
   .match-room-rsvp { align-items: flex-start; flex-direction: column; }
   .match-room-rsvp > div:last-child { flex-wrap: wrap; }
 }
+
+
+/* =========================
+   SkF Dojo — calendar-first overview
+   ========================= */
+.dojo-overview {
+  gap: 16px;
+}
+
+.dojo-next-activity,
+.dojo-calendar-panel {
+  border: 1px solid rgba(0,217,245,.16);
+  border-radius: 13px;
+  background:
+    linear-gradient(135deg, rgba(0,217,245,.04), transparent 48%),
+    rgba(5,10,12,.78);
+}
+
+.dojo-next-activity {
+  padding: 22px;
+}
+
+.dojo-next-label,
+.dojo-calendar-head > div:first-child > span {
+  color: #00d9f5;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.dojo-next-grid {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.dojo-next-grid h2 {
+  margin: 7px 0 4px;
+  color: #f2f7f8;
+  font-size: clamp(25px, 4vw, 42px);
+  line-height: 1;
+}
+
+.dojo-next-grid p {
+  margin: 0;
+  color: #819399;
+  font-size: 11px;
+}
+
+.dojo-kind {
+  display: inline-flex;
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.dojo-kind.is-training { color: #00d9f5; border: 1px solid rgba(0,217,245,.25); }
+.dojo-kind.is-war { color: #ff5d5d; border: 1px solid rgba(255,42,42,.28); }
+.dojo-kind.is-tournament {
+  color: #f2f7f8;
+  border: 1px solid rgba(0,217,245,.2);
+  background: linear-gradient(90deg, rgba(0,217,245,.08), rgba(255,42,42,.08));
+}
+.dojo-kind.is-event { color: #9aa7ab; border: 1px solid rgba(255,255,255,.12); }
+
+.dojo-next-rsvp {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.dojo-next-rsvp > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.dojo-next-rsvp span {
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.dojo-next-rsvp .available { color: #00d9f5; }
+.dojo-next-rsvp .tentative { color: #d5b83d; }
+.dojo-next-rsvp .unavailable { color: #ff6767; }
+
+.dojo-next-rsvp button {
+  padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 6px;
+  background: rgba(255,255,255,.025);
+  color: #819399;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.dojo-next-rsvp button.active.available { color: #00d9f5; border-color: rgba(0,217,245,.4); }
+.dojo-next-rsvp button.active.tentative { color: #d5b83d; border-color: rgba(213,184,61,.4); }
+.dojo-next-rsvp button.active.unavailable { color: #ff6767; border-color: rgba(255,42,42,.4); }
+
+.dojo-next-link {
+  color: #00d9f5;
+  font-size: 10px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.dojo-calendar-panel {
+  padding: 20px;
+}
+
+.dojo-calendar-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.dojo-calendar-head h2 {
+  margin: 4px 0 0;
+  color: #f2f7f8;
+  font-size: 20px;
+}
+
+.dojo-master-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(145px,1fr));
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.dojo-master-day {
+  min-height: 240px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 9px;
+  background: rgba(255,255,255,.012);
+}
+
+.dojo-master-day > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.dojo-master-day > header span {
+  color: #819399;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dojo-master-day > header strong {
+  color: #f2f7f8;
+  font-size: 16px;
+}
+
+.dojo-master-day > div {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 7px;
+}
+
+.dojo-master-day > div > i {
+  padding: 28px 0;
+  color: #3e494d;
+  font-style: normal;
+  text-align: center;
+}
+
+.dojo-master-card {
+  display: grid;
+  gap: 3px;
+  padding: 9px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-left: 2px solid #697579;
+  border-radius: 7px;
+  background: rgba(0,0,0,.18);
+  color: inherit;
+  text-decoration: none;
+}
+
+.dojo-master-card.is-training { border-left-color: #00d9f5; }
+.dojo-master-card.is-war { border-left-color: #ff2a2a; }
+.dojo-master-card.is-tournament {
+  border-left-color: #00d9f5;
+  border-right: 2px solid #ff2a2a;
+  background: linear-gradient(135deg, rgba(0,217,245,.035), rgba(255,42,42,.025));
+}
+.dojo-master-card.is-event { border-left-color: #7d898d; }
+
+.dojo-master-card > span {
+  color: #819399;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.dojo-master-card.is-training > span { color: #00d9f5; }
+.dojo-master-card.is-war > span { color: #ff6262; }
+.dojo-master-card.is-tournament > span { color: #f2f7f8; }
+
+.dojo-master-card time {
+  color: #f2f7f8;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.dojo-master-card h3 {
+  margin: 1px 0;
+  color: #f2f7f8;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.dojo-master-card small {
+  overflow: hidden;
+  color: #819399;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dojo-master-counts {
+  display: flex;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.dojo-master-counts b {
+  color: #00d9f5;
+  font-size: 8px;
+}
+
+.dojo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  color: #819399;
+  font-size: 8px;
+}
+
+.dojo-legend span::before {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: #7d898d;
+  content: "";
+}
+.dojo-legend .is-training::before { background: #00d9f5; }
+.dojo-legend .is-war::before { background: #ff2a2a; }
+.dojo-legend .is-tournament::before {
+  background: linear-gradient(135deg,#00d9f5 50%,#ff2a2a 50%);
+}
+
+.dojo-week-pulse {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 8px;
+}
+
+.dojo-week-pulse > div {
+  padding: 13px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 9px;
+  background: rgba(255,255,255,.018);
+}
+
+.dojo-week-pulse span {
+  display: block;
+  color: #819399;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.dojo-week-pulse strong {
+  display: block;
+  margin-top: 4px;
+  color: #f2f7f8;
+  font-size: 22px;
+}
+
+.dojo-recent-list {
+  display: grid;
+  gap: 6px;
+}
+
+.dojo-recent-list > div {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+
+.dojo-recent-list > div > b {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.035);
+  color: #819399;
+  font-size: 9px;
+}
+
+.dojo-recent-list > div > b.is-win { color: #00d9f5; }
+.dojo-recent-list > div > b.is-loss { color: #ff6262; }
+
+.dojo-recent-list span strong,
+.dojo-recent-list span small {
+  display: block;
+}
+
+.dojo-recent-list span strong {
+  color: #f2f7f8;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.dojo-recent-list span small {
+  margin-top: 2px;
+  color: #819399;
+  font-size: 8px;
+}
+
+.dojo-recent-list em {
+  color: #f2f7f8;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.dojo-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+}
+
+.dojo-shortcuts button {
+  display: grid;
+  gap: 3px;
+  padding: 15px;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 9px;
+  background: rgba(255,255,255,.018);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dojo-shortcuts button:hover {
+  border-color: rgba(0,217,245,.2);
+  background: rgba(0,217,245,.025);
+}
+
+.dojo-shortcuts span {
+  color: #ff5959;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.dojo-shortcuts strong {
+  color: #f2f7f8;
+  font-size: 14px;
+}
+
+.dojo-shortcuts small {
+  color: #819399;
+  font-size: 9px;
+}
+
+@media (max-width: 1000px) {
+  .dojo-master-week {
+    grid-template-columns: repeat(7,160px);
+  }
+}
+
+@media (max-width: 720px) {
+  .dojo-next-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dojo-next-rsvp {
+    justify-items: start;
+  }
+
+  .dojo-calendar-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dojo-week-pulse,
+  .dojo-shortcuts {
+    grid-template-columns: repeat(2,1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .dojo-week-pulse,
+  .dojo-shortcuts {
+    grid-template-columns: 1fr;
+  }
+}
