@@ -553,6 +553,16 @@ function NewsModule({ config }: { config: Config }) {
   );
 }
 
+interface RosterMode {
+  gameType: string;
+  rating: number | null;
+}
+
+interface RosterPublicPlayer {
+  userId: number;
+  modes: RosterMode[];
+}
+
 interface RosterMember {
   id: number;
   discordId: string;
@@ -568,12 +578,18 @@ function RosterModule({ config }: { config: Config }) {
   const title = str(config, 'title', 'Roster');
   const limit = num(config, 'limit', 12);
   const [state, setState] = useState<{ members: RosterMember[]; total: number } | null>(null);
+  const [performance, setPerformance] = useState<Map<number, RosterPublicPlayer>>(new Map());
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {
-    api
-      .get<{ members: RosterMember[]; total: number }>(`/members?limit=${limit}&offset=0`)
-      .then(setState)
+    Promise.all([
+      api.get<{ members: RosterMember[]; total: number }>(`/members?limit=${limit}&offset=0`),
+      api.get<{ players: RosterPublicPlayer[] }>('/competitive/public').catch(() => ({ players: [] })),
+    ])
+      .then(([roster, competitive]) => {
+        setState(roster);
+        setPerformance(new Map(competitive.players.map((player) => [player.userId, player])));
+      })
       .catch(() => {
         // Most commonly a 403 for a viewer without roster.view — hide quietly.
         setDenied(true);
@@ -602,7 +618,16 @@ function RosterModule({ config }: { config: Config }) {
               <Link to={`/members/${m.id}`} className="roster-mini-item">
                 <img className="avatar-sm" src={memberAvatar(m, 64)} alt="" loading="lazy" />
                 <span className="roster-mini-name">{memberName(m)}</span>
-                {m.rankName && <span className="muted small">{m.rankName}</span>}
+                <span className="roster-mini-meta">
+                  {m.rankName && <span className="muted small">{m.rankName}</span>}
+                  {(() => {
+                    const player = performance.get(m.id);
+                    const mode = player?.modes.find((item) => item.gameType === 'CA') ?? player?.modes[0];
+                    return mode?.rating != null ? (
+                      <span className="roster-mini-elo">ELO {Math.round(mode.rating)}</span>
+                    ) : null;
+                  })()}
+                </span>
               </Link>
             </li>
           ))}
