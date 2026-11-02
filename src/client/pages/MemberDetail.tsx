@@ -25,6 +25,7 @@ import MemberTraining from '../components/MemberTraining';
 import MemberActivity from '../components/MemberActivity';
 import SigilEmblem from '../components/SigilEmblem';
 import MemberQuakePerformance from '../components/MemberQuakePerformance';
+import MemberTrainingFocus from '../components/MemberTrainingFocus';
 
 interface Role {
   id: number;
@@ -516,6 +517,7 @@ export default function MemberDetail() {
           </section>
 
           <MemberQuakePerformance memberId={member.id} linkedSteamId={member.steamId} />
+          <MemberTrainingFocus memberId={member.id} />
 
           <section className="block">
             <h3>Medals</h3>
