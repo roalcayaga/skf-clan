@@ -34,6 +34,26 @@ interface Member {
   imageUrl: string | null;
 }>;
 }
+interface PublicMode {
+  gameType: string;
+  rating: number | null;
+  totalGames: number;
+  wins: number;
+  losses: number;
+  kd: number | null;
+  winRate: number;
+}
+
+interface PublicPlayer {
+  userId: number;
+  modes: PublicMode[];
+}
+
+function primaryMode(player: PublicPlayer | undefined): PublicMode | null {
+  if (!player?.modes?.length) return null;
+  return player.modes.find((mode) => mode.gameType === 'CA') ?? player.modes[0] ?? null;
+}
+
 interface LegacyMember {
   id: number;
   name: string;
@@ -125,6 +145,7 @@ function MemberList() {
 const [members, setMembers] = useState<Member[]>([]);
 const [legacyMembers, setLegacyMembers] = useState<LegacyMember[]>([]);
 const [total, setTotal] = useState(0);
+  const [performance, setPerformance] = useState<Map<number, PublicPlayer>>(new Map());
   const [sort, setSort] = useState<SortField>('rank');
   const [dir, setDir] = useState<SortDir>('desc');
   const [loading, setLoading] = useState(true);
@@ -157,6 +178,13 @@ const [total, setTotal] = useState(0);
     loadPage(0, sort, dir).finally(() => setLoading(false));
   }, [sort, dir, loadPage]);
 
+  useEffect(() => {
+    api
+      .get<{ players: PublicPlayer[] }>('/competitive/public')
+      .then(({ players }) => setPerformance(new Map(players.map((player) => [player.userId, player]))))
+      .catch(() => setPerformance(new Map()));
+  }, []);
+
   function sortBy(field: SortField) {
     if (field === sort) {
       setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -169,6 +197,7 @@ const [total, setTotal] = useState(0);
   const arrow = (field: SortField) =>
     sort === field ? <MorphIcon icon={dir === 'asc' ? ChevronUp : ChevronDown} size={13} aria-hidden /> : null;
   const hasMore = members.length < total;
+  const statsFor = (memberId: number) => primaryMode(performance.get(memberId));
 
   return (
     <>
@@ -235,6 +264,31 @@ const [total, setTotal] = useState(0);
   </div>
 )}
         </div>
+
+        {(() => {
+          const stats = statsFor(m.id);
+          return stats ? (
+            <div className="skf-roster-stats" aria-label={`Rendimiento público ${stats.gameType}`}>
+              <div className="skf-roster-stat">
+                <span>ELO</span>
+                <strong>{stats.rating != null ? Math.round(stats.rating) : '—'}</strong>
+                <small>{stats.gameType}</small>
+              </div>
+              <div className="skf-roster-stat">
+                <span>K/D</span>
+                <strong>{stats.kd != null ? stats.kd.toFixed(2) : '—'}</strong>
+                <small>{stats.totalGames} partidas</small>
+              </div>
+              <div className="skf-roster-stat">
+                <span>WIN</span>
+                <strong>{stats.totalGames > 0 ? `${stats.winRate}%` : '—'}</strong>
+                <small>{stats.wins}W · {stats.losses}L</small>
+              </div>
+            </div>
+          ) : (
+            <span className="skf-roster-no-stats">Sin stats públicas</span>
+          );
+        })()}
 
         {m.status !== 'active' && (
           <span className="status-chip">{m.status}</span>
