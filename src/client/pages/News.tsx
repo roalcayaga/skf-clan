@@ -8,7 +8,6 @@ import { Link } from 'react-router-dom';
 import { MorphIcon } from 'morphicons/react';
 import { Pin } from 'lucide';
 import { api } from '../lib/api';
-import { useSession } from '../lib/session';
 import { sanitizeHtml } from '../lib/richtext';
 
 interface Post {
@@ -32,7 +31,6 @@ function dateLabel(unix: number | null): string {
 }
 
 export default function News() {
-  useSession();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
