@@ -198,12 +198,30 @@ export async function buildPulseHome(
             profileImageUrl: s.legacyMembers.profileImageUrl,
             yearsActive: s.legacyMembers.yearsActive,
             note: s.legacyMembers.note,
+            currentNick: s.legacyMembers.currentNick,
+            ownerUserId: s.legacyMembers.ownerUserId,
           })
           .from(s.legacyMembers)
           .orderBy(s.legacyMembers.sortOrder, s.legacyMembers.name)
           .limit(1)
           .offset(offset)
       )[0] ?? null;
+
+    if (legacy?.currentNick && !legacy.ownerUserId) {
+      const owner =
+        (
+          await database
+            .select({ id: s.users.id })
+            .from(s.users)
+            .where(
+              sql`lower(${s.users.displayName}) = lower(${legacy.currentNick})
+                OR lower(${s.users.globalName}) = lower(${legacy.currentNick})
+                OR lower(${s.users.username}) = lower(${legacy.currentNick})`,
+            )
+            .limit(1)
+        )[0] ?? null;
+      if (owner) legacy = { ...legacy, ownerUserId: owner.id };
+    }
   }
 
   let personal = null;

@@ -43,6 +43,7 @@ import { recordActivity } from './attendance';
 import { materializeRecurringEvents } from './events/recurrence';
 import { collectCompetitiveStats } from './competitive/collector';
 import { collectPublicArena } from './competitive/public';
+import { claimLegacyIdentities } from './legacy/ownership';
 import ranks from './routes/ranks';
 import members from './routes/members';
 import bansRoutes from './routes/bans';
@@ -410,6 +411,25 @@ app.get('/api/auth/callback', async (c) => {
       );
     }
   }
+
+  const refreshedIdentity = existing
+    ? {
+        displayName: existing.displayName,
+        globalName: discordUser.global_name,
+        username: discordUser.username,
+      }
+    : {
+        displayName: null,
+        globalName: discordUser.global_name,
+        username: discordUser.username,
+      };
+  c.executionCtx.waitUntil(
+    claimLegacyIdentities(c.env, userId, [
+      refreshedIdentity.displayName,
+      refreshedIdentity.globalName,
+      refreshedIdentity.username,
+    ]).catch((err) => console.error('Legacy identity claim failed', err)),
+  );
 
   const { token: sessionToken, expiresAt } = await createSession(database, userId, {
     userAgent: c.req.header('user-agent'),

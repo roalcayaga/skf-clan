@@ -501,7 +501,7 @@ interface NewsPost {
 }
 
 function NewsModule({ config }: { config: Config }) {
-  const title = str(config, 'title', 'Latest News');
+  const title = str(config, 'title', 'Crónicas');
   const limit = num(config, 'limit', 5);
   const [posts, setPosts] = useState<NewsPost[] | null>(null);
 

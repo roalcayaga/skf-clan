@@ -12,6 +12,7 @@ import { grantRole, revokeRole, syncMemberRankRoles, reconcileMember } from '../
 import { announce } from '../discord/announce';
 import { deleteMediaByUrl } from './media';
 import { emitNotification } from '../notifications';
+import { claimLegacyIdentities } from '../legacy/ownership';
 
 const members = new Hono<AppContext>();
 
@@ -131,6 +132,8 @@ const legacyRows =
           profileImageUrl: s.legacyMembers.profileImageUrl,
           yearsActive: s.legacyMembers.yearsActive,
           note: s.legacyMembers.note,
+          currentNick: s.legacyMembers.currentNick,
+          ownerUserId: s.legacyMembers.ownerUserId,
           sortOrder: s.legacyMembers.sortOrder,
           rankName: s.ranks.name,
         })
@@ -193,10 +196,40 @@ for (const medal of legacyMedalRows) {
   );
 }
 
-const legacyMembers = legacyRows.map((row) => ({
-  ...row,
-  medals: legacyMedalsByMember.get(row.id) ?? [],
-}));
+const ownerCandidates = legacyRows.some((row) => row.currentNick && !row.ownerUserId)
+  ? await database
+      .select({
+        id: s.users.id,
+        username: s.users.username,
+        globalName: s.users.globalName,
+        displayName: s.users.displayName,
+        status: s.users.status,
+      })
+      .from(s.users)
+  : [];
+
+const ownerByNick = new Map<string, (typeof ownerCandidates)[number]>();
+for (const candidate of ownerCandidates) {
+  for (const value of [candidate.displayName, candidate.globalName, candidate.username]) {
+    const key = value?.trim().toLowerCase();
+    if (key && !ownerByNick.has(key)) ownerByNick.set(key, candidate);
+  }
+}
+
+const legacyMembers = legacyRows.map((row) => {
+  const autoOwner =
+    !row.ownerUserId && row.currentNick
+      ? ownerByNick.get(row.currentNick.trim().toLowerCase()) ?? null
+      : null;
+  return {
+    ...row,
+    ownerUserId: row.ownerUserId ?? autoOwner?.id ?? null,
+    ownerStatus: autoOwner?.status ?? null,
+    ownerDisplayName:
+      autoOwner?.displayName ?? autoOwner?.globalName ?? autoOwner?.username ?? null,
+    medals: legacyMedalsByMember.get(row.id) ?? [],
+  };
+});
 
 return c.json({
   members: membersWithMedals,
@@ -568,6 +601,14 @@ members.patch('/:id/profile', requireUser, async (c) => {
         meta: { displayName, discordSynced: discordSync?.synced ?? false },
       });
     }
+  }
+
+  if (body.displayName !== undefined) {
+    c.executionCtx.waitUntil(
+      claimLegacyIdentities(c.env, id, [displayName]).catch((err) =>
+        console.error('Legacy identity claim on profile update failed', err),
+      ),
+    );
   }
 
   return c.json({ ok: true, bio, displayName, profileImageUrl, steamId, discordSync });

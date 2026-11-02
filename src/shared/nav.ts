@@ -50,7 +50,7 @@ export interface BuiltinTarget {
 /** The fixed destinations the app always ships. `key` is what a link stores. */
 export const BUILTIN_TARGETS: Record<string, BuiltinTarget> = {
   home: { key: 'home', path: '/', label: 'Home' },
-  news: { key: 'news', path: '/news', label: 'News' },
+  news: { key: 'news', path: '/news', label: 'Crónicas' },
   roster: { key: 'roster', path: '/roster', label: 'Roster' },
   events: { key: 'events', path: '/events', label: 'Events', permission: 'events.view' },
   competitive: { key: 'competitive', path: '/competitive', label: 'Arena' },

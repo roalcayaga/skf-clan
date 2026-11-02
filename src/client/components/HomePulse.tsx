@@ -87,6 +87,8 @@ interface PulseData {
     profileImageUrl: string | null;
     yearsActive: string | null;
     note: string | null;
+    currentNick: string | null;
+    ownerUserId: number | null;
   } | null;
   personal: {
     steamId: string;
@@ -344,7 +346,17 @@ export default function HomePulse() {
               <div>
                 <h3>{pulse.legacy.name}</h3>
                 {pulse.legacy.yearsActive && <span>{pulse.legacy.yearsActive}</span>}
+                {pulse.legacy.currentNick && (
+                  <span className="pulse-legacy-current">
+                    {pulse.legacy.currentNick.toLowerCase() === pulse.legacy.name.toLowerCase()
+                      ? 'Activo actualmente'
+                      : `Hoy: ${pulse.legacy.currentNick}`}
+                  </span>
+                )}
                 {pulse.legacy.note && <p>{pulse.legacy.note}</p>}
+                {pulse.legacy.ownerUserId && (
+                  <Link to={`/members/${pulse.legacy.ownerUserId}`}>Ver perfil actual →</Link>
+                )}
               </div>
             </div>
           ) : (

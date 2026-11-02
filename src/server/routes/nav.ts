@@ -58,6 +58,9 @@ function normalizeSkfNav(config: NavConfig): NavConfig {
         if (item.kind === 'builtin' && item.target === 'competitive') {
           return { ...item, label: 'Arena' };
         }
+        if (item.kind === 'builtin' && item.target === 'news') {
+          return { ...item, label: 'Crónicas' };
+        }
         return item;
       });
 

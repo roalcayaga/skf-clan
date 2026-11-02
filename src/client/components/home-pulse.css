@@ -360,3 +360,19 @@
   .training-focus-copy { grid-template-columns: 1fr; }
   .training-impact { grid-template-columns: repeat(2,1fr); }
 }
+
+.pulse-legacy-current {
+  display: block;
+  margin-top: 3px;
+  color: #00d9f5 !important;
+  font-size: 9px !important;
+  font-weight: 800;
+}
+.pulse-legacy-body a {
+  display: inline-block;
+  margin-top: 5px;
+  color: #00d9f5;
+  font-size: 9px;
+  font-weight: 800;
+  text-decoration: none;
+}
