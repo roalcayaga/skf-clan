@@ -376,3 +376,48 @@
   font-weight: 800;
   text-decoration: none;
 }
+
+
+.pulse-grid-public {
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+}
+
+.pulse-member-zone,
+.pulse-public-links {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.pulse-member-zone h3,
+.pulse-public-links h3 {
+  margin: 0;
+}
+
+.pulse-member-zone p,
+.pulse-public-links p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.pulse-member-zone a,
+.pulse-public-links a {
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.pulse-public-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .pulse-grid-public {
+    grid-template-columns: 1fr;
+  }
+}
