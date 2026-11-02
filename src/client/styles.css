@@ -3221,6 +3221,19 @@ input[aria-invalid='true'] {
   align-items: center;
 }
 
+.events-mini-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.events-mini-share,
+.training-share {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
 .events-mini-date {
   display: flex;
   flex-direction: column;
@@ -4688,6 +4701,9 @@ a.org-box:hover {
 .training-item-actions {
   flex: 0 0 auto;
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.4rem;
   padding: 0 0.6rem 0 0;
 }
