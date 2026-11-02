@@ -19,6 +19,7 @@ import { memberName } from '../../shared/names';
 import { memberAvatar } from '../../shared/avatar';
 import { embedSrcForPage, isAllowedEmbedSrc } from '../../shared/embeds';
 import { isAllowedSlidesSrc } from '../../shared/trainingEmbed';
+import { shareActivityWhatsApp } from '../lib/share';
 import type { ModuleType } from '../../shared/layout';
 
 type Config = Record<string, unknown>;
@@ -673,6 +674,23 @@ function EventsModule({ config }: { config: Config }) {
                   {e.location ? ` · ${e.location}` : ''}
                 </div>
               </div>
+              <button
+                type="button"
+                className="share-whatsapp events-mini-share"
+                aria-label={`Compartir ${e.title} por WhatsApp`}
+                onClick={() =>
+                  shareActivityWhatsApp({
+                    title: e.title,
+                    startsAt: e.startsAt,
+                    endsAt: e.endsAt,
+                    location: e.location,
+                    path: `/events?event=${e.id}`,
+                    label: `Evento · ${e.title}`,
+                  })
+                }
+              >
+                WhatsApp
+              </button>
             </li>
           ))}
         </ul>
@@ -1162,6 +1180,23 @@ function TrainingModal({
         <div className="training-modal-head">
           <h3>{course.title}</h3>
           <div className="training-modal-actions">
+            <button
+              type="button"
+              className="share-whatsapp"
+              onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set('training', String(course.id));
+                url.hash = '';
+                shareActivityWhatsApp({
+                  title: course.title,
+                  description: course.description,
+                  path: `${url.pathname}${url.search}`,
+                  label: `Entrenamiento · ${course.title}`,
+                });
+              }}
+            >
+              Compartir por WhatsApp
+            </button>
             {course.completionMode === 'self' &&
               (course.completed ? (
                 <span className="training-done">✓ Completed</span>
@@ -1219,6 +1254,18 @@ function TrainingModule({ config }: { config: Config }) {
     void load();
   }, []);
 
+  // A shared training link carries ?training=<id>. Once the catalog loads,
+  // open that course automatically so the recipient lands on the exact item.
+  useEffect(() => {
+    if (!courses) return;
+    const raw = new URLSearchParams(window.location.search).get('training');
+    if (!raw) return;
+    const id = Number(raw);
+    if (!Number.isInteger(id)) return;
+    const target = courses.find((course) => course.id === id);
+    if (target) setOpen(target);
+  }, [courses]);
+
   const mark = async (course: TrainingCourse, done: boolean) => {
     setBusy(course.id);
     try {
@@ -1244,9 +1291,27 @@ function TrainingModule({ config }: { config: Config }) {
         </span>
         {c.description && <span className="training-desc muted small">{c.description}</span>}
       </button>
-      {c.completionMode === 'self' && (
-        <div className="training-item-actions">
-          {c.completed ? (
+      <div className="training-item-actions">
+        <button
+          type="button"
+          className="share-whatsapp training-share"
+          aria-label={`Compartir ${c.title} por WhatsApp`}
+          onClick={() => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('training', String(c.id));
+            url.hash = '';
+            shareActivityWhatsApp({
+              title: c.title,
+              description: c.description,
+              path: `${url.pathname}${url.search}`,
+              label: `Entrenamiento · ${c.title}`,
+            });
+          }}
+        >
+          WhatsApp
+        </button>
+        {c.completionMode === 'self' &&
+          (c.completed ? (
             <button type="button" className="mini" disabled={busy === c.id} onClick={() => mark(c, false)}>
               Undo
             </button>
@@ -1254,9 +1319,8 @@ function TrainingModule({ config }: { config: Config }) {
             <button type="button" className="mini primary" disabled={busy === c.id} onClick={() => mark(c, true)}>
               Mark done
             </button>
-          )}
-        </div>
-      )}
+          ))}
+      </div>
     </li>
   );
 
