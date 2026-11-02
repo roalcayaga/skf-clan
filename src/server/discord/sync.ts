@@ -119,6 +119,57 @@ export async function reconcileMember(
   const user = await db.query.users.findFirst({ where: eq(s.users.id, userId) });
   if (!user) throw new Error(`No such member: ${userId}`);
 
+  const member = await rest.getMember(user.discordId);
+  if (member === null) return { added: [], removed: [] }; // not in the guild
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  let effectiveRankId = user.rankId;
+
+  // A pending applicant who is now verifiably in the Discord guild should not
+  // remain stuck in Admissions until their next OAuth login. Reconciliation is
+  // already authoritative for guild membership, so promote them here as well.
+  if (user.status === 'pending') {
+    const defaultRank = effectiveRankId
+      ? null
+      : await db.query.ranks.findFirst({ where: eq(s.ranks.isDefault, true) });
+    effectiveRankId = effectiveRankId ?? defaultRank?.id ?? null;
+
+    await db
+      .update(s.users)
+      .set({
+        status: 'active',
+        rankId: effectiveRankId,
+        guildJoinedAt: user.guildJoinedAt ?? member.joinedAt,
+        updatedAt: nowSec,
+      })
+      .where(eq(s.users.id, user.id));
+
+    if (effectiveRankId) {
+      const desiredRankRoles = await db
+        .select({ roleId: s.rankRoles.roleId })
+        .from(s.rankRoles)
+        .where(eq(s.rankRoles.rankId, effectiveRankId));
+
+      for (const { roleId } of desiredRankRoles) {
+        await db
+          .insert(s.userRoles)
+          .values({ userId: user.id, roleId, source: 'rank', grantedBy: null })
+          .onConflictDoNothing();
+      }
+    }
+
+    await db.insert(s.auditLog).values({
+      action: 'member.approve',
+      targetType: 'user',
+      targetId: String(user.id),
+      meta: { via: 'discord-reconcile' },
+      source: 'system',
+    });
+  } else if (user.guildJoinedAt == null && member.joinedAt != null) {
+    // Backfill the authoritative guild-join date for existing members.
+    await db.update(s.users).set({ guildJoinedAt: member.joinedAt }).where(eq(s.users.id, user.id));
+  }
+
   // Callers that reconcile many members in a row (the cron batch) pass the role
   // set in so it isn't re-queried per member.
   const mapped = allRoles ?? (await db.select().from(s.roles));
@@ -133,15 +184,7 @@ export async function reconcileMember(
     .where(eq(s.userRoles.userId, user.id));
 
   const shouldHave = new Set(held.map((r) => r.discordRoleId).filter((id): id is string => !!id));
-  const member = await rest.getMember(user.discordId);
-  if (member === null) return { added: [], removed: [] }; // left the server
   const currentlyHas = member.roles;
-
-  // Backfill the authoritative guild-join date (for tenure medals) the first
-  // time we read a member who hasn't logged in since it was added.
-  if (user.guildJoinedAt == null && member.joinedAt != null) {
-    await db.update(s.users).set({ guildJoinedAt: member.joinedAt }).where(eq(s.users.id, user.id));
-  }
 
   const added: string[] = [];
   const removed: string[] = [];
