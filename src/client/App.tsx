@@ -39,6 +39,7 @@ const ForgeShare = lazy(() => import('./pages/ForgeShare'));
 // below (unchanged) covers all of these; this is a pure packaging change.
 const Login = lazy(() => import('./pages/Login'));
 const MemberDetail = lazy(() => import('./pages/MemberDetail'));
+const PlayerProfile = lazy(() => import('./pages/PlayerProfile'));
 const AccountSettings = lazy(() => import('./pages/AccountSettings'));
 const Roster = lazy(() => import('./pages/Roster'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
@@ -399,6 +400,7 @@ export default function App() {
               sanitized public card unless an authenticated user explicitly edits
               their own profile or opens the admin management view. */}
           <Route path="/members/:id" element={<MemberDetail />} />
+          <Route path="/player/:slug" element={<PlayerProfile />} />
           <Route
             path="/account"
             element={
