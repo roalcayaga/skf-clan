@@ -48,6 +48,22 @@ export default function Home() {
         </section>
       )}
 
+      {viewer && (
+        <section className="temple-gates">
+          <div className="temple-gates-copy">
+            <div className="public-home-kicker">PUERTAS DEL TEMPLO</div>
+            <h2>SkF está abierto a desafíos y nuevos guerreros.</h2>
+            <p className="muted">
+              Desde aquí puedes revisar exactamente las dos puertas públicas del clan que también ven los visitantes.
+            </p>
+          </div>
+          <div className="temple-gates-actions">
+            <Link className="btn-cta primary" to="/challenge">Desafiar a SkF</Link>
+            <Link className="btn-cta" to="/join">Postular a SkF</Link>
+          </div>
+        </section>
+      )}
+
       <HomePulse />
       <PageRenderer layout={state.layout} />
     </>
