@@ -28,6 +28,7 @@ interface Member {
   status: string;
   joinedAt: number;
   rankName: string | null;
+  publicSlug: string;
   medals: Array<{
   id: number;
   name: string;
@@ -73,7 +74,7 @@ interface LegacyMember {
   }>;
 }
 
-type SortField = 'rank' | 'name';
+type SortField = 'rank' | 'name' | 'elo';
 type SortDir = 'asc' | 'desc';
 const PAGE_SIZE = 50;
 
@@ -162,7 +163,7 @@ const [total, setTotal] = useState(0);
   legacyMembers: LegacyMember[];
   total: number;
 }>(
-        `/members?limit=${PAGE_SIZE}&offset=${offset}&sort=${sortField}&dir=${sortDir}`,
+        `/members?limit=${PAGE_SIZE}&offset=${offset}&sort=${sortField === 'elo' ? 'rank' : sortField}&dir=${sortDir}`,
       );
       setTotal(total);
       setMembers((prev) => (offset === 0 ? page : [...prev, ...page]));
@@ -190,7 +191,7 @@ const [total, setTotal] = useState(0);
       setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSort(field);
-      setDir(field === 'rank' ? 'desc' : 'asc');
+      setDir(field === 'name' ? 'asc' : 'desc');
     }
   }
 
@@ -198,6 +199,16 @@ const [total, setTotal] = useState(0);
     sort === field ? <MorphIcon icon={dir === 'asc' ? ChevronUp : ChevronDown} size={13} aria-hidden /> : null;
   const hasMore = members.length < total;
   const statsFor = (memberId: number) => primaryMode(performance.get(memberId));
+  const visibleMembers =
+    sort === 'elo'
+      ? [...members].sort((a, b) => {
+          const ar = statsFor(a.id)?.rating;
+          const br = statsFor(b.id)?.rating;
+          const av = ar == null ? (dir === 'asc' ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY) : ar;
+          const bv = br == null ? (dir === 'asc' ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY) : br;
+          return dir === 'asc' ? av - bv : bv - av;
+        })
+      : members;
 
   return (
     <>
@@ -209,6 +220,9 @@ const [total, setTotal] = useState(0);
         <button type="button" className={sort === 'rank' ? 'seg active' : 'seg'} onClick={() => sortBy('rank')}>
           Rank {arrow('rank')}
         </button>
+        <button type="button" className={sort === 'elo' ? 'seg active' : 'seg'} onClick={() => sortBy('elo')}>
+          ELO {arrow('elo')}
+        </button>
         <span className="muted small roster-count">
           {hasMore ? `${members.length} of ${total}` : total} member{total === 1 ? '' : 's'}
         </span>
@@ -219,9 +233,9 @@ const [total, setTotal] = useState(0);
       ) : (
         <>
           <ul className="roster skf-roster">
-  {members.map((m) => (
+  {visibleMembers.map((m) => (
     <li key={m.id} className="skf-roster-item">
-      <Link to={`/members/${m.id}`} className="roster-link skf-roster-link">
+      <Link to={`/player/${m.publicSlug}`} className="roster-link skf-roster-link">
         <img
           className="avatar skf-roster-avatar"
           src={memberAvatar(m, 64)}
