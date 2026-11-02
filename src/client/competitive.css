@@ -1967,3 +1967,29 @@
     width: min(100%, 88px);
   }
 }
+
+
+.dojo-card-share {
+  min-height: 28px;
+  width: fit-content;
+  padding: 4px 7px;
+  border: 1px solid rgba(0,217,245,.16);
+  border-radius: 6px;
+  background: rgba(0,217,245,.025);
+  color: #00d9f5;
+  font-size: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.dojo-card-share:hover {
+  border-color: rgba(0,217,245,.36);
+  background: rgba(0,217,245,.06);
+}
+
+@media (max-width: 720px) {
+  .dojo-card-share {
+    min-height: 36px;
+    padding-inline: 9px;
+  }
+}

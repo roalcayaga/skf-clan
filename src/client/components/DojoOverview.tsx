@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { CompetitiveSummary } from '../../shared/competitive';
 import type { TournamentSummary } from '../lib/tournaments';
+import { shareActivityWhatsApp } from '../lib/share';
 
 type Availability = 'available' | 'tentative' | 'unavailable';
 
@@ -182,6 +183,23 @@ export default function DojoOverview({
 
             {next.event && (
               <div className="dojo-next-rsvp">
+                <button
+                  type="button"
+                  className="share-whatsapp"
+                  onClick={() =>
+                    shareActivityWhatsApp({
+                      title: next.title,
+                      startsAt: next.event!.startsAt,
+                      endsAt: next.event!.endsAt,
+                      location: next.event!.location,
+                      description: next.event!.description,
+                      path: '/competitive',
+                      label: kindLabel(next.kind) + ' · ' + next.title,
+                    })
+                  }
+                >
+                  Compartir por WhatsApp
+                </button>
                 <div>
                   <span className="available">{next.event.availabilityCounts?.available ?? next.event.signupCount} ✓</span>
                   <span className="tentative">{next.event.availabilityCounts?.tentative ?? 0} ?</span>
@@ -261,6 +279,23 @@ export default function DojoOverview({
                           <b>{counts.available} ✓</b>
                           {counts.tentative > 0 && <b>{counts.tentative} ?</b>}
                         </div>
+                        <button
+                          type="button"
+                          className="dojo-card-share"
+                          onClick={() =>
+                            shareActivityWhatsApp({
+                              title: titleForEvent(event.title),
+                              startsAt: event.startsAt,
+                              endsAt: event.endsAt,
+                              location: event.location,
+                              description: event.description,
+                              path: '/competitive',
+                              label: kindLabel(kind) + ' · ' + titleForEvent(event.title),
+                            })
+                          }
+                        >
+                          Compartir
+                        </button>
                       </article>
                     );
                   })}

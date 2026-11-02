@@ -58,6 +58,19 @@ export const ADMIN_GROUPS: AdminGroup[] = [
     label: 'People',
     items: [
       {
+        key: 'members',
+        label: 'Miembros',
+        tabs: [{ key: 'members', label: 'Miembros', permission: 'roster.edit' }],
+      },
+      {
+        key: 'dojo-ops',
+        label: 'Dojo Ops',
+        tabs: [
+          { key: 'dojoops', label: 'Dojo', permission: 'events.manage' },
+          { key: 'eventsops', label: 'Events', permission: 'events.manage' },
+        ],
+      },
+      {
         key: 'admissions',
         label: 'Applicants & Bans',
         tabs: [

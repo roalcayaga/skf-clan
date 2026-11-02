@@ -34,8 +34,15 @@ interface MemberRow {
   displayName: string | null;
 }
 
-export default function TournamentDetail() {
-  const { key } = useParams();
+export default function TournamentDetail({
+  managementMode = false,
+  tournamentKey,
+}: {
+  managementMode?: boolean;
+  tournamentKey?: string;
+} = {}) {
+  const { key: routeKey } = useParams();
+  const key = tournamentKey ?? routeKey;
   const { viewer } = useSession();
   const [data, setData] = useState<DetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,7 +78,8 @@ export default function TournamentDetail() {
   if (error) return <section className="panel"><p className="muted">{error}</p></section>;
   if (!data) return null;
 
-  const { tournament: t, entrants, matches, canManage, standings } = data;
+  const { tournament: t, entrants, matches, standings } = data;
+  const canManage = managementMode && data.canManage;
   const isGroup = t.format === 'round_robin' || t.format === 'swiss';
   const openForEntrants = t.status === 'draft' || t.status === 'registration' || t.status === 'seeding';
   const iAmEntered = !!viewer && entrants.some((e) => e.userId === viewer.id);

@@ -9,12 +9,10 @@ import { Link } from 'react-router-dom';
 import { MorphIcon } from 'morphicons/react';
 import { Trophy } from 'lucide';
 import { api, ApiError } from '../lib/api';
-import { useSession } from '../lib/session';
 import { FORMAT_LABELS } from '../../shared/tournament';
 import { STATUS_LABELS, type TournamentSummary } from '../lib/tournaments';
 
 export default function Tournaments() {
-  const { can } = useSession();
   const [rows, setRows] = useState<TournamentSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,9 +40,6 @@ export default function Tournaments() {
           <h2>Torneos</h2>
           <p className="muted">Brackets, posiciones y campeones del Dojo.</p>
         </div>
-        {can('tournaments.manage') && (
-          <Link to="/admin/tournaments" className="button primary">+ Nuevo torneo</Link>
-        )}
       </header>
 
       {loading ? (

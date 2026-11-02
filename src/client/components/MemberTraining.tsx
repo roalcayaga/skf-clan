@@ -18,9 +18,9 @@ interface StatusRow {
   completedAt: number | null;
 }
 
-export default function MemberTraining({ userId, isSelf }: { userId: number; isSelf: boolean }) {
+export default function MemberTraining({ userId, isSelf, managementMode = false }: { userId: number; isSelf: boolean; managementMode?: boolean }) {
   const { can } = useSession();
-  const canManage = can('training.manage');
+  const canManage = managementMode && can('training.manage');
   const [rows, setRows] = useState<StatusRow[] | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
 

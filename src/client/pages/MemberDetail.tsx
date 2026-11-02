@@ -93,9 +93,17 @@ interface Rank {
 
 const STATUSES = ['active', 'inactive', 'loa', 'retired', 'banned'] as const;
 
-export default function MemberDetail() {
+export default function MemberDetail({
+  managementMode = false,
+  memberIdOverride,
+  embedded = false,
+}: {
+  managementMode?: boolean;
+  memberIdOverride?: number;
+  embedded?: boolean;
+} = {}) {
   const { id } = useParams();
-  const memberId = Number(id);
+  const memberId = memberIdOverride ?? Number(id);
   const navigate = useNavigate();
   const { viewer, can } = useSession();
   const modules = useModules();
@@ -142,13 +150,13 @@ export default function MemberDetail() {
     Promise.all([
       load(),
       api.get<{ ranks: Rank[] }>('/ranks').then(({ ranks }) => setRanks(ranks)),
-      can('roles.assign')
+      managementMode && can('roles.assign')
         ? api.get<{ roles: Role[] }>('/roles/assignable').then(({ roles }) => setAssignable(roles))
         : Promise.resolve(),
-      can('medals.award')
+      managementMode && can('medals.award')
         ? api.get<{ medals: MedalDef[] }>('/medals').then(({ medals }) => setMedalCatalog(medals))
         : Promise.resolve(),
-      can('warrecords.award')
+      managementMode && can('warrecords.award')
         ? api
             .get<{ warRecords: WarRecordDef[] }>('/warrecords')
             .then(({ warRecords }) => setWarRecordCatalog(warRecords))
@@ -156,7 +164,7 @@ export default function MemberDetail() {
     ])
       .catch(() => setError('Failed to load member.'))
       .finally(() => setLoading(false));
-  }, [load, can, setError]);
+  }, [load, can, setError, managementMode]);
 
   useRecordRecent(member ? { group: 'people', label: memberName(member), to: `/members/${member.id}` } : null);
 
@@ -164,7 +172,7 @@ export default function MemberDetail() {
   if (!member) return <div className="empty">Member not found.</div>;
 
   const isSelf = viewer?.id === member.id;
-  const canEditProfile = isSelf || can('roster.edit');
+  const canEditProfile = isSelf || (managementMode && can('roster.edit'));
   const displayName = memberName(member);
   // The underlying Discord identity, shown when a display name overrides it.
   const discordHandle = member.globalName ?? member.username;
@@ -278,11 +286,12 @@ export default function MemberDetail() {
   // the rank in the admin panel, so they aren't listed or revocable on a member.
   const manualRoles = member.roles.filter((r) => r.source !== 'rank');
   const showAdminBar =
-    can('roster.promote') ||
-    can('roster.edit') ||
-    can('roster.remove') ||
-    can('roles.assign') ||
-    can('discord.sync');
+    managementMode &&
+    (can('roster.promote') ||
+      can('roster.edit') ||
+      can('roster.remove') ||
+      can('roles.assign') ||
+      can('discord.sync'));
 
   return (
     <section className="panel member-detail">
@@ -291,11 +300,11 @@ export default function MemberDetail() {
           <strong>⏳ Application in review.</strong> You’re not a member yet — fill out your profile below so an
           officer knows who you are. You’ll get full access once you’re approved.
         </div>
-      ) : (
+      ) : !embedded ? (
         <button className="back" onClick={() => navigate('/roster')}>
           ← Roster
         </button>
-      )}
+      ) : null}
 
       <Alerts error={error} warning={warning} notice={notice} />
 
@@ -349,7 +358,7 @@ export default function MemberDetail() {
 
       {showAdminBar && (
         <div className="member-admin-bar">
-          {can('roster.promote') && (
+          {managementMode && can('roster.promote') && (
             <div className="mab-group">
               <span className="rank-thumb">
                 {member.rank?.imageUrl ? (
@@ -387,7 +396,7 @@ export default function MemberDetail() {
             </div>
           )}
 
-          {(can('roster.edit') || can('roster.remove')) && (
+          {(managementMode && (can('roster.edit') || can('roster.remove'))) && (
             <div className="mab-group">
               <span className="mab-label">Status</span>
               <select
@@ -413,7 +422,7 @@ export default function MemberDetail() {
                   </option>
                 ))}
               </select>
-              {can('roster.remove') && member.status !== 'retired' && (
+              {managementMode && can('roster.remove') && member.status !== 'retired' && (
                 <button
                   className="danger mini"
                   disabled={busy || !outranksTarget}
@@ -430,7 +439,7 @@ export default function MemberDetail() {
             </div>
           )}
 
-          {can('roles.assign') && (
+          {managementMode && can('roles.assign') && (
             <div className="mab-group mab-roles">
               <span className="mab-label">Roles</span>
               {manualRoles.map((role) => (
@@ -473,7 +482,7 @@ export default function MemberDetail() {
             </div>
           )}
 
-          {can('discord.sync') && (
+          {managementMode && can('discord.sync') && (
             <div className="mab-group">
               <button
                 disabled={busy}
@@ -530,7 +539,7 @@ export default function MemberDetail() {
           </section>
 
           <MemberQuakePerformance memberId={member.id} linkedSteamId={member.steamId} />
-          <MemberTrainingFocus memberId={member.id} />
+          <MemberTrainingFocus memberId={member.id} managementMode={managementMode} />
 
           <section className="block">
             <h3>Medals</h3>
@@ -555,7 +564,7 @@ export default function MemberDetail() {
                       {m.citation && <span className="medal-citation">{m.citation}</span>}
                     </span>
                     {m.awardedBy === null && <span className="tag">auto</span>}
-                    {can('medals.award') && (
+                    {managementMode && can('medals.award') && (
                       <button
                         className="mini danger"
                         disabled={busy}
@@ -573,7 +582,7 @@ export default function MemberDetail() {
                 ))}
               </ul>
             )}
-            {can('medals.award') &&
+            {managementMode && can('medals.award') &&
               (awardable.length > 0 ? (
                 <AwardMedalRow medals={awardable} busy={busy} onAward={awardMedal} />
               ) : (
@@ -606,7 +615,7 @@ export default function MemberDetail() {
                       {w.gameName && <span className="tag">{w.gameName}</span>}
                       {w.citation && <span className="medal-citation">{w.citation}</span>}
                     </span>
-                    {can('warrecords.award') && (
+                    {managementMode && can('warrecords.award') && (
                       <button
                         className="mini danger"
                         disabled={busy}
@@ -624,7 +633,7 @@ export default function MemberDetail() {
                 ))}
               </ul>
             )}
-            {can('warrecords.award') &&
+            {managementMode && can('warrecords.award') &&
               (awardableWarRecords.length > 0 ? (
                 <AwardWarRecordRow records={awardableWarRecords} busy={busy} onAward={awardWarRecord} />
               ) : (
@@ -640,7 +649,7 @@ export default function MemberDetail() {
 
           {(isSelf || can('training.view')) && (
             <div className="block">
-              <MemberTraining userId={member.id} isSelf={isSelf} />
+              <MemberTraining userId={member.id} isSelf={isSelf} managementMode={managementMode} />
             </div>
           )}
 

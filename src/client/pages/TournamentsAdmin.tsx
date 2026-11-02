@@ -5,10 +5,10 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { api, ApiError } from '../lib/api';
 import { useSession } from '../lib/session';
 import Switch from '../components/Switch';
+import TournamentDetail from './TournamentDetail';
 import {
   TOURNAMENT_FORMATS,
   FORMAT_LABELS,
@@ -30,7 +30,6 @@ interface MedalRow {
 }
 
 export default function TournamentsAdmin() {
-  const navigate = useNavigate();
   const { can } = useSession();
   const canAlliance = can('alliance.manage');
   const [list, setList] = useState<TournamentSummary[]>([]);
@@ -40,6 +39,7 @@ export default function TournamentsAdmin() {
   const [savedMedal, setSavedMedal] = useState<string>('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
   // Create form.
   const [name, setName] = useState('');
@@ -104,12 +104,23 @@ export default function TournamentsAdmin() {
         shareAlliance,
         description: description.trim(),
       });
-      navigate(`/tournaments/${tournament.slug}`);
+      setSelectedSlug(tournament.slug);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not create the tournament.');
     } finally {
       setBusy(false);
     }
+  }
+
+  if (selectedSlug) {
+    return (
+      <section className="admin-tool">
+        <button type="button" className="back" onClick={() => setSelectedSlug(null)}>
+          ← Volver a Torneos
+        </button>
+        <TournamentDetail tournamentKey={selectedSlug} managementMode />
+      </section>
+    );
   }
 
   return (
@@ -251,7 +262,11 @@ export default function TournamentsAdmin() {
                 <td>{FORMAT_LABELS[t.format]}</td>
                 <td><span className={`status-chip status-${t.status}`}>{STATUS_LABELS[t.status]}</span></td>
                 <td>{t.entrantCount}</td>
-                <td><Link to={`/tournaments/${t.slug}`} className="mini">Open →</Link></td>
+                <td>
+                  <button type="button" className="mini" onClick={() => setSelectedSlug(t.slug)}>
+                    Gestionar →
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
