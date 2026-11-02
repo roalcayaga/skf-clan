@@ -48,3 +48,30 @@ export function shareActivityWhatsApp(input: ShareActivityInput): void {
   if (input.description) lines.push('', input.description.trim());
   shareWhatsAppText(input.label || input.title, lines.join('\n'), input.path);
 }
+
+
+export async function sharePlayerProfile(input: {
+  name: string;
+  rank?: string | null;
+  elo?: number | null;
+  path: string;
+}): Promise<void> {
+  const url = absoluteUrl(input.path);
+  const parts = [input.rank || null, input.elo != null ? `ELO ${Math.round(input.elo)}` : null].filter(Boolean);
+  const text = `🐉 ${input.name} · SkF Clan${parts.length ? ' · ' + parts.join(' · ') : ''}`;
+
+  if (typeof navigator.share === 'function') {
+    try {
+      await navigator.share({ title: `${input.name} · SkF Clan`, text, url });
+      return;
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+    }
+  }
+
+  window.open(
+    'https://wa.me/?text=' + encodeURIComponent(text + '\n\n' + url),
+    '_blank',
+    'noopener,noreferrer',
+  );
+}
