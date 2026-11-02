@@ -715,6 +715,15 @@ export const legacyMembers = sqliteTable(
     // Nota breve opcional para contexto histórico.
     note: text('note'),
 
+    // Current identity if this historical player is still/recently active under
+    // another nick. Kept even before they create a skfclan.com account.
+    currentNick: text('current_nick'),
+
+    // Durable owner link once the current identity has a site account.
+    ownerUserId: integer('owner_user_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+
     // Permite controlar manualmente el orden en el roster histórico.
     sortOrder: integer('sort_order').notNull().default(0),
 
@@ -723,6 +732,7 @@ export const legacyMembers = sqliteTable(
   },
   (t) => [
     index('legacy_members_rank_idx').on(t.rankId),
+    index('legacy_members_owner_idx').on(t.ownerUserId),
     index('legacy_members_sort_idx').on(t.sortOrder),
   ],
 );
