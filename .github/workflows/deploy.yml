@@ -37,6 +37,15 @@ jobs:
       - name: Build and typecheck
         run: npm run build
 
+      - name: Diagnose Hitokiri membership
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'diag/hitokiri-pending' && env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          echo "=== HITOKIRI USER ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT id,discord_id,username,global_name,display_name,status,rank_id,guild_joined_at,last_seen_at,last_reconciled_at,created_at,updated_at FROM users WHERE lower(username) LIKE '%hitokiri%' OR lower(global_name) LIKE '%hitokiri%' OR lower(display_name) LIKE '%hitokiri%';"
+          echo "=== HITOKIRI AUDIT ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT action,target_type,target_id,actor_id,source,created_at,meta FROM audit_log WHERE target_type='user' AND target_id IN (SELECT CAST(id AS TEXT) FROM users WHERE lower(username) LIKE '%hitokiri%' OR lower(global_name) LIKE '%hitokiri%' OR lower(display_name) LIKE '%hitokiri%') ORDER BY created_at DESC LIMIT 50;"
+
+
       - name: Run tests
         run: npm test
 
