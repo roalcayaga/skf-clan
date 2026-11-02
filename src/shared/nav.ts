@@ -51,6 +51,7 @@ export interface BuiltinTarget {
 export const BUILTIN_TARGETS: Record<string, BuiltinTarget> = {
   home: { key: 'home', path: '/', label: 'Home' },
   news: { key: 'news', path: '/news', label: 'Crónicas' },
+  history: { key: 'history', path: '/history', label: 'Historia', public: true },
   roster: { key: 'roster', path: '/roster', label: 'Roster' },
   events: { key: 'events', path: '/events', label: 'Events', permission: 'events.view' },
   competitive: { key: 'competitive', path: '/competitive', label: 'Arena' },
@@ -232,6 +233,7 @@ export function defaultNavConfig(navPages: { slug: string; title: string | null 
   const items: NavItem[] = [
     { id: newNavId(), type: 'link', label: '', kind: 'builtin', target: 'home' },
     { id: newNavId(), type: 'link', label: '', kind: 'builtin', target: 'news' },
+    { id: newNavId(), type: 'link', label: '', kind: 'builtin', target: 'history' },
     { id: newNavId(), type: 'link', label: '', kind: 'builtin', target: 'roster' },
     { id: newNavId(), type: 'link', label: '', kind: 'builtin', target: 'events' },
     { id: newNavId(), type: 'link', label: '', kind: 'builtin', target: 'competitive' },
