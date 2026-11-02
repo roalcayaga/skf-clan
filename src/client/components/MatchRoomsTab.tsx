@@ -283,10 +283,10 @@ function RoomCard({
   );
 }
 
-export default function MatchRoomsTab() {
+export default function MatchRoomsTab({ managementMode = false }: { managementMode?: boolean } = {}) {
   const { can } = useSession();
   const canView = can('events.view');
-  const canManage = can('events.manage');
+  const canManage = managementMode && can('events.manage');
   const canRoster = can('roster.view');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [rivals, setRivals] = useState<Rival[]>([]);
