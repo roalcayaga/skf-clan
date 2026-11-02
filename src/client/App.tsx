@@ -48,6 +48,7 @@ const Home = lazy(() => import('./pages/Home'));
 const CustomPage = lazy(() => import('./pages/CustomPage'));
 const News = lazy(() => import('./pages/News'));
 const NewsPost = lazy(() => import('./pages/NewsPost'));
+const HistoryPage = lazy(() => import('./pages/History'));
 const Events = lazy(() => import('./pages/Events'));
 const Competitive = lazy(() => import('./pages/Competitive'));
 // The World of Warcraft level race; brings Chart.js with it, so only visitors
@@ -339,6 +340,7 @@ export default function App() {
               </PublicOr>
             }
           />
+          <Route path="/history" element={<HistoryPage />} />
           {/* Leadership folded into the roster; keep the old path working. */}
           <Route path="/leadership" element={<Navigate to="/roster" replace />} />
           <Route

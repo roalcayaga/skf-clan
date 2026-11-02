@@ -694,6 +694,29 @@ export const memberMedals = sqliteTable(
     index('member_medals_medal_idx').on(t.medalId),
   ],
 );
+export const historyMilestones = sqliteTable(
+  'history_milestones',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    sortYear: integer('sort_year').notNull(),
+    dateLabel: text('date_label').notNull(),
+    category: text('category'),
+    title: text('title').notNull(),
+    body: text('body').notNull(),
+    imageUrl: text('image_url'),
+    isPublished: integer('is_published', { mode: 'boolean' }).notNull().default(true),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+    updatedBy: integer('updated_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: integer('created_at').notNull().default(now),
+    updatedAt: integer('updated_at').notNull().default(now),
+  },
+  (t) => [
+    index('history_milestones_order_idx').on(t.sortYear, t.sortOrder, t.id),
+    index('history_milestones_published_idx').on(t.isPublished, t.sortYear),
+  ],
+);
+
 export const legacyMembers = sqliteTable(
   'legacy_members',
   {
