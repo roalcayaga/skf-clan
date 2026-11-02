@@ -40,37 +40,28 @@ function delta(a: number | null | undefined, b: number | null | undefined, suffi
   return (d > 0 ? '+' : '') + d + suffix;
 }
 
-export default function MemberQuakePerformance({
-  memberId,
-  linkedSteamId,
-}: {
-  memberId: number;
-  linkedSteamId: string | null;
-}) {
-  const [data, setData] = useState<Payload | null>(null);
+export default function MemberQuakePerformance({ memberId }: { memberId: number }) {
+  const [data, setData] = useState<Payload | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!linkedSteamId) {
-      setData(null);
-      return;
-    }
-    api.get<Payload>('/competitive/member/' + memberId).then(setData).catch(() => setData(null));
-  }, [memberId, linkedSteamId]);
+    setData(undefined);
+    api.get<Payload>('/competitive/member/' + memberId + '/public').then(setData).catch(() => setData(null));
+  }, [memberId]);
 
-  if (!linkedSteamId) {
-    return (
-      <section className="block quake-performance">
-        <h3>Quake Live Performance</h3>
-        <p className="muted">Vincula tu SteamID64 arriba para activar Public Arena y el benchmark SkF vs público.</p>
-      </section>
-    );
-  }
-
-  if (!data) {
+  if (data === undefined) {
     return (
       <section className="block quake-performance">
         <h3>Quake Live Performance</h3>
         <p className="muted">Cargando datos de Quake Club…</p>
+      </section>
+    );
+  }
+
+  if (!data?.linked) {
+    return (
+      <section className="block quake-performance">
+        <h3>Quake Live Performance</h3>
+        <p className="muted">Este jugador aún no tiene estadísticas públicas de Quake vinculadas.</p>
       </section>
     );
   }
