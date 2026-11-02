@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useSession } from '../lib/session';
+import { shareWhatsAppText } from '../lib/share';
 import './home-pulse.css';
 
 interface PulsePlayer {
@@ -120,12 +121,6 @@ function fmtAgo(unix: number): string {
   return 'hace ' + Math.floor(seconds / 86400) + ' d';
 }
 
-function shareWhatsApp(title: string, body: string, path: string) {
-  const url = new URL(path, window.location.origin).toString();
-  const text = '🐉 *SkF · ' + title + '*\n' + body + '\n\n' + url;
-  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener,noreferrer');
-}
-
 export default function HomePulse() {
   const { viewer } = useSession();
   const [pulse, setPulse] = useState<PulseData | null>(null);
@@ -194,7 +189,7 @@ export default function HomePulse() {
               <button
                 className="pulse-share"
                 onClick={() =>
-                  shareWhatsApp(
+                  shareWhatsAppText(
                     'Anoche en el Templo',
                     pulse.yesterday.matches + ' partidas · ' + pulse.yesterday.wins + 'W/' + pulse.yesterday.losses + 'L' +
                       (pulse.yesterday.warrior ? '\nMVP: ' + pulse.yesterday.warrior.name + ' · Perf ' + pulse.yesterday.warrior.avgPerformance : '') +
@@ -224,7 +219,7 @@ export default function HomePulse() {
               <button
                 className="pulse-share"
                 onClick={() =>
-                  shareWhatsApp(
+                  shareWhatsAppText(
                     'Guerrero del Día',
                     pulse.warrior!.name + ' · K/D ' + pulse.warrior!.kd + ' · Performance ' + pulse.warrior!.avgPerformance,
                     viewer ? '/competitive' : '/',
@@ -325,7 +320,7 @@ export default function HomePulse() {
                       <small>{fmtAgo(event.occurredAt)}</small>
                     </div>
                     {event.sharePath && (
-                      <button onClick={() => shareWhatsApp(event.title, event.body || '', event.sharePath!)}>↗</button>
+                      <button onClick={() => shareWhatsAppText(event.title, event.body || '', event.sharePath!)}>↗</button>
                     )}
                   </li>
                 ))}
