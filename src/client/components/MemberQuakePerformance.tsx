@@ -85,7 +85,7 @@ export default function MemberQuakePerformance({
           <span className="quake-performance-kicker">QUAKE LIVE</span>
           <h3>{data.quakeName || data.skf?.name || 'Competitive profile'}</h3>
         </div>
-        <a className="btn-link" href="/competitive">Competitive Hub →</a>
+        <a className="btn-link" href="/competitive">SkF Arena →</a>
       </div>
 
       <div className="quake-performance-grid">

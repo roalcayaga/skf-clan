@@ -32,21 +32,44 @@ async function pageSlugs(database: ReturnType<typeof db>): Promise<Set<string>> 
 }
 
 /**
- * This SkF fork treats Competitive as a first-class destination. Existing
- * installs may already have a stored navigation tree from before the hub
- * existed, so inject the built-in once on read. The builder will persist it the
- * next time an admin saves navigation.
+ * Keep the SkF top navigation aligned with the current information architecture.
+ * Arena is first-class; the old standalone "Tablero" stats link is now redundant
+ * and is pruned on read without deleting the underlying page/content.
  */
-function ensureCompetitive(config: NavConfig): NavConfig {
-  const hasCompetitive = (items: NavConfig['items']): boolean =>
-    items.some(
+function normalizeSkfNav(config: NavConfig): NavConfig {
+  const isOldDashboard = (item: NavConfig['items'][number]): boolean => {
+    if (item.type !== 'link') return false;
+    const label = item.label.trim().toLowerCase();
+    const target = (item.target ?? '').toLowerCase();
+    return (
+      label === 'tablero' ||
+      target.includes('deadshot79.github.io/skf-stats') ||
+      target.includes('/skf-stats')
+    );
+  };
+
+  const cleanItems = (items: NavConfig['items']): NavConfig['items'] =>
+    items
+      .filter((item) => !isOldDashboard(item))
+      .map((item) => {
+        if (item.type === 'group') {
+          return { ...item, children: cleanItems(item.children ?? []) };
+        }
+        if (item.kind === 'builtin' && item.target === 'competitive') {
+          return { ...item, label: 'Arena' };
+        }
+        return item;
+      });
+
+  const items = cleanItems(config.items);
+  const hasArena = (list: NavConfig['items']): boolean =>
+    list.some(
       (item) =>
         (item.type === 'link' && item.kind === 'builtin' && item.target === 'competitive') ||
-        (item.type === 'group' && hasCompetitive(item.children ?? [])),
+        (item.type === 'group' && hasArena(item.children ?? [])),
     );
-  if (hasCompetitive(config.items)) return config;
+  if (hasArena(items)) return { ...config, items };
 
-  const items = [...config.items];
   const eventsIndex = items.findIndex(
     (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'events',
   );
@@ -55,9 +78,9 @@ function ensureCompetitive(config: NavConfig): NavConfig {
   );
   const insertAt = eventsIndex >= 0 ? eventsIndex + 1 : adminIndex >= 0 ? adminIndex : items.length;
   items.splice(insertAt, 0, {
-    id: 'skf-competitive',
+    id: 'skf-arena',
     type: 'link',
-    label: 'Competitive',
+    label: 'Arena',
     kind: 'builtin',
     target: 'competitive',
   });
@@ -69,7 +92,7 @@ async function loadNav(database: ReturnType<typeof db>): Promise<NavConfig> {
   const slugs = await pageSlugs(database);
   const row = await database.query.settings.findFirst({ where: eq(s.settings.key, NAV_KEY) });
   if (row?.value && typeof row.value === 'object') {
-    return ensureCompetitive(sanitizeNav(row.value, { validSlugs: slugs }));
+    return normalizeSkfNav(sanitizeNav(row.value, { validSlugs: slugs }));
   }
   // Nothing stored → reproduce the old menu from the pages that opted in.
   const navPages = await database
@@ -77,7 +100,7 @@ async function loadNav(database: ReturnType<typeof db>): Promise<NavConfig> {
     .from(s.pageLayouts)
     .where(eq(s.pageLayouts.showInNav, true))
     .orderBy(asc(s.pageLayouts.navOrder), asc(s.pageLayouts.slug));
-  return ensureCompetitive(defaultNavConfig(navPages.filter((p) => p.slug !== HOME_SLUG)));
+  return normalizeSkfNav(defaultNavConfig(navPages.filter((p) => p.slug !== HOME_SLUG)));
 }
 
 /** The rendered menu, for the top bar. Public — SiteNav gates each entry per viewer. */

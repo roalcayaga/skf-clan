@@ -472,8 +472,8 @@ export default function Competitive() {
     <div className="competitive-hub">
       <header className="competitive-hero">
         <div>
-          <div className="competitive-kicker">SHAOLIN KUNG FU · COMPETITIVE OS</div>
-          <h1>Competitive Hub</h1>
+          <div className="competitive-kicker">SHAOLIN KUNG FU · ARENA</div>
+          <h1>SkF Arena</h1>
           <p>Partidas, guerreros, armas, servidor y entrenamiento semanal en un solo lugar.</p>
         </div>
         <div className="competitive-hero-actions">
@@ -488,7 +488,7 @@ export default function Competitive() {
         </div>
       </header>
 
-      <nav className="competitive-tabs" aria-label="Competitive Hub">
+      <nav className="competitive-tabs" aria-label="SkF Arena">
         {([
           ['overview', 'Resumen'],
           ['stats', 'Stats'],
@@ -511,7 +511,7 @@ export default function Competitive() {
 
       {statsError && <div className="competitive-alert">{statsError}</div>}
       {loading ? (
-        <div className="loading">Cargando Competitive Hub…</div>
+        <div className="loading">Cargando SkF Arena…</div>
       ) : (
         <>
           {tab === 'overview' && (
