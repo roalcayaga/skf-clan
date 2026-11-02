@@ -4,10 +4,10 @@ import { useSigil } from '../lib/sigil';
 import SigilStage from '../components/SigilStage';
 
 const ERRORS: Record<string, string> = {
-  state: 'That sign-in attempt expired or didn’t match. Please try again.',
-  not_in_guild: 'You need to be a member of the clan’s Discord server to sign in.',
-  banned: 'This account has been banned.',
-  discord: 'Discord declined the sign-in.',
+  state: 'El intento de acceso expiró o no coincidió. Intenta nuevamente.',
+  not_in_guild: 'Debes pertenecer al servidor de Discord del clan para ingresar.',
+  banned: 'Esta cuenta está bloqueada.',
+  discord: 'Discord rechazó el inicio de sesión.',
 };
 
 export default function Login() {
@@ -22,7 +22,7 @@ export default function Login() {
   const showSigil = sigilLoaded && sigil.enabled;
 
   const message = error
-    ? (ERRORS[error] ?? 'Sign-in failed. Please try again.') +
+    ? (ERRORS[error] ?? 'No se pudo iniciar sesión. Intenta nuevamente.') +
       (error === 'discord' && detail ? ` (${detail})` : '')
     : null;
 
@@ -37,13 +37,23 @@ export default function Login() {
         <span className="brand-lead">{(siteName || '').slice(0, 1)}</span>
         {(siteName || '').slice(1)}
       </h1>
-      <p className="muted">Sign in with the Discord account you use in the server. No separate password to forget.</p>
+      <p className="muted">
+        Usa la misma cuenta de Discord con la que participas en el servidor de SkF.
+      </p>
 
       {message && <div className="alert">{message}</div>}
 
       <a className="discord-btn large" href="/api/auth/login">
-        Sign in with Discord
+        Continuar en Discord
       </a>
+
+      <div className="login-security-note">
+        <strong>Acceso seguro mediante Discord OAuth</strong>
+        <span>
+          Serás redirigido al sitio oficial <code>discord.com</code>. SkF nunca solicita,
+          almacena ni recibe tu contraseña de Discord.
+        </span>
+      </div>
     </div>
   );
 }
