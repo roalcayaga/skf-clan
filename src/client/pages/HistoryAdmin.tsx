@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { api } from '../lib/api';
+import './history.css';
 import { useAction, Alerts } from '../lib/action';
 
 interface Milestone {
