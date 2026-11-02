@@ -80,6 +80,7 @@ const AttendanceAdmin = lazy(() => import('./AttendanceAdmin'));
 const TournamentsAdmin = lazy(() => import('./TournamentsAdmin'));
 const AllianceAdmin = lazy(() => import('./AllianceAdmin'));
 const ApplicantsAdmin = lazy(() => import('./ApplicantsAdmin'));
+const ScrimRequestsAdmin = lazy(() => import('./ScrimRequestsAdmin'));
 const BansAdmin = lazy(() => import('./BansAdmin'));
 const TrainingAdmin = lazy(() => import('./TrainingAdmin'));
 const MembersAdmin = lazy(() => import('./MembersAdmin'));
@@ -136,6 +137,7 @@ const TAB_RENDERERS: Record<string, () => ReactNode> = {
   dojoops: () => <Competitive managementMode />,
   eventsops: () => <Events managementMode />,
   applicants: () => <ApplicantsAdmin />,
+  scrims: () => <ScrimRequestsAdmin />,
   bans: () => <BansAdmin />,
   ranks: () => <Ranks />,
   roles: () => <Roles />,
