@@ -24,6 +24,11 @@ export const NOTIFICATION_EVENTS: NotificationEvent[] = [
     description: 'Someone signed in and is waiting on a decision — notify the roles that approve members.',
   },
   {
+    key: 'scrim.requested',
+    label: 'New scrim / PCW challenge',
+    description: 'Another clan sent a public match request and is waiting for coordination.',
+  },
+  {
     key: 'member.approved',
     label: 'Applicant approved',
     description: 'An applicant was approved and became a full member.',
