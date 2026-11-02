@@ -299,9 +299,9 @@ export default function App() {
               <AccountMenu />
             </>
           ) : (
-            <a className="discord-btn" href="/api/auth/login">
-              Sign in with Discord
-            </a>
+            <Link className="discord-btn" to="/login">
+              Entrar con Discord
+            </Link>
           )}
         </div>
       </header>
