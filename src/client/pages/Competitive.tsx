@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import '../competitive.css';
 import { useSession } from '../lib/session';
+import { shareActivityWhatsApp } from '../lib/share';
 import MatchRoomsTab from '../components/MatchRoomsTab';
 import DojoOverview from '../components/DojoOverview';
 import Tournaments from './Tournaments';
@@ -209,7 +210,7 @@ function PlayerTable({
   );
 }
 
-export default function Competitive() {
+export default function Competitive({ managementMode = false }: { managementMode?: boolean } = {}) {
   const { can } = useSession();
   const [tab, setTab] = useState<Tab>('overview');
   const [summary, setSummary] = useState<CompetitiveSummary>(EMPTY_SUMMARY);
@@ -237,9 +238,9 @@ export default function Competitive() {
   const [trainingRecurrence, setTrainingRecurrence] = useState<Recurrence>('weekly');
   const [trainingBusy, setTrainingBusy] = useState(false);
 
-  const canRefresh = can('matches.record');
+  const canRefresh = managementMode && can('matches.record');
   const canViewDojo = can('events.view');
-  const canManageDojo = can('events.manage');
+  const canManageDojo = managementMode && can('events.manage');
 
   async function loadStats() {
     setStatsError(null);
@@ -540,7 +541,7 @@ export default function Competitive() {
             </div>
           )}
 
-          {tab === 'wars' && <MatchRoomsTab />}
+          {tab === 'wars' && <MatchRoomsTab managementMode={managementMode} />}
 
           {tab === 'tournaments' && <Tournaments />}
 
@@ -649,6 +650,23 @@ export default function Competitive() {
                                 <span className="tentative">{counts.tentative} ?</span>
                                 <span className="unavailable">{counts.unavailable} ×</span>
                               </div>
+                              <button
+                                type="button"
+                                className="share-whatsapp"
+                                onClick={() =>
+                                  shareActivityWhatsApp({
+                                    title: stripDojo(event.title),
+                                    startsAt: event.startsAt,
+                                    endsAt: event.endsAt,
+                                    location: event.location,
+                                    description: event.description,
+                                    path: '/competitive',
+                                    label: 'Entrenamiento · ' + stripDojo(event.title),
+                                  })
+                                }
+                              >
+                                Compartir por WhatsApp
+                              </button>
                               <div className="dojo-rsvp">
                                 <button
                                   className={event.mySignup?.availability === 'available' ? 'active available' : ''}
