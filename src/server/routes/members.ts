@@ -487,25 +487,38 @@ members.patch('/:id/profile', requireUser, async (c) => {
       .where(eq(s.users.id, id));
 
     if (changed) {
-      // Push the new display name as the member's Discord nickname. An empty
-      // value clears the nickname, reverting them to their Discord name.
-      const client = await rest(c.env);
-      if (client) {
-        try {
-          await client.setNickname(
-            target.discordId,
-            displayName ?? '',
-            `mustr: display name set by ${viewer.username}`,
-          );
-          discordSync = { synced: true };
-        } catch (err) {
-          discordSync = {
-            synced: false,
-            warning:
-              err instanceof DiscordError && err.status === 403
-                ? 'Saved here, but Discord refused the nickname change: the bot needs Manage Nicknames and a role above this member. (Discord also blocks changing the server owner’s nickname.)'
-                : `Saved here, but the Discord nickname change failed: ${(err as Error).message}`,
-          };
+      // A pending applicant is, by definition, not currently confirmed as a
+      // member of this Discord guild. Save the site display name immediately,
+      // but do not call Discord yet: PATCHing a non-member returns 404/10007
+      // ("Unknown Member"). The OAuth login flow re-syncs the nickname once
+      // Discord confirms that the person has joined the guild.
+      if (target.status === 'pending') {
+        discordSync = {
+          synced: false,
+          warning:
+            'Saved. Your Discord nickname will sync automatically after you join the clan Discord and sign in again.',
+        };
+      } else {
+        const client = await rest(c.env);
+        if (client) {
+          try {
+            await client.setNickname(
+              target.discordId,
+              displayName ?? '',
+              `mustr: display name set by ${viewer.username}`,
+            );
+            discordSync = { synced: true };
+          } catch (err) {
+            discordSync = {
+              synced: false,
+              warning:
+                err instanceof DiscordError && err.status === 403
+                  ? 'Saved here, but Discord refused the nickname change: the bot needs Manage Nicknames and a role above this member. (Discord also blocks changing the server owner’s nickname.)'
+                  : err instanceof DiscordError && err.status === 404
+                    ? 'Saved. Discord cannot find this account in the clan server yet. Join or rejoin the Discord and sign in again to sync the nickname.'
+                    : `Saved here, but the Discord nickname change failed: ${(err as Error).message}`,
+            };
+          }
         }
       }
 
