@@ -53,7 +53,7 @@ export const BUILTIN_TARGETS: Record<string, BuiltinTarget> = {
   news: { key: 'news', path: '/news', label: 'News' },
   roster: { key: 'roster', path: '/roster', label: 'Roster' },
   events: { key: 'events', path: '/events', label: 'Events', permission: 'events.view' },
-  competitive: { key: 'competitive', path: '/competitive', label: 'Competitive' },
+  competitive: { key: 'competitive', path: '/competitive', label: 'Arena' },
   // Any signed-in member; reachable by logged-out visitors only when the admin
   // flips the leaderboard public (surfaced via /pages/public/list). No static
   // `public` flag, so anonymous visibility follows that runtime flag.
