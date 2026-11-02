@@ -31,12 +31,45 @@ async function pageSlugs(database: ReturnType<typeof db>): Promise<Set<string>> 
   return new Set(rows.map((r) => r.slug).filter((slug) => slug !== HOME_SLUG));
 }
 
+/**
+ * This SkF fork treats Competitive as a first-class destination. Existing
+ * installs may already have a stored navigation tree from before the hub
+ * existed, so inject the built-in once on read. The builder will persist it the
+ * next time an admin saves navigation.
+ */
+function ensureCompetitive(config: NavConfig): NavConfig {
+  const hasCompetitive = (items: NavConfig['items']): boolean =>
+    items.some(
+      (item) =>
+        (item.type === 'link' && item.kind === 'builtin' && item.target === 'competitive') ||
+        (item.type === 'group' && hasCompetitive(item.children ?? [])),
+    );
+  if (hasCompetitive(config.items)) return config;
+
+  const items = [...config.items];
+  const eventsIndex = items.findIndex(
+    (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'events',
+  );
+  const adminIndex = items.findIndex(
+    (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'admin',
+  );
+  const insertAt = eventsIndex >= 0 ? eventsIndex + 1 : adminIndex >= 0 ? adminIndex : items.length;
+  items.splice(insertAt, 0, {
+    id: 'skf-competitive',
+    type: 'link',
+    label: 'Competitive',
+    kind: 'builtin',
+    target: 'competitive',
+  });
+  return { ...config, items };
+}
+
 /** Resolve the effective nav: the stored+sanitised tree, or the classic default. */
 async function loadNav(database: ReturnType<typeof db>): Promise<NavConfig> {
   const slugs = await pageSlugs(database);
   const row = await database.query.settings.findFirst({ where: eq(s.settings.key, NAV_KEY) });
   if (row?.value && typeof row.value === 'object') {
-    return sanitizeNav(row.value, { validSlugs: slugs });
+    return ensureCompetitive(sanitizeNav(row.value, { validSlugs: slugs }));
   }
   // Nothing stored → reproduce the old menu from the pages that opted in.
   const navPages = await database
@@ -44,7 +77,7 @@ async function loadNav(database: ReturnType<typeof db>): Promise<NavConfig> {
     .from(s.pageLayouts)
     .where(eq(s.pageLayouts.showInNav, true))
     .orderBy(asc(s.pageLayouts.navOrder), asc(s.pageLayouts.slug));
-  return defaultNavConfig(navPages.filter((p) => p.slug !== HOME_SLUG));
+  return ensureCompetitive(defaultNavConfig(navPages.filter((p) => p.slug !== HOME_SLUG)));
 }
 
 /** The rendered menu, for the top bar. Public — SiteNav gates each entry per viewer. */
