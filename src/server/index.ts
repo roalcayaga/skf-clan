@@ -23,6 +23,13 @@ import {
   clearedSessionCookie,
 } from './auth/session';
 import {
+  steamAuthorizeUrl,
+  steamStateCookie,
+  clearedSteamStateCookie,
+  STEAM_STATE_COOKIE,
+  verifySteamCallback,
+} from './auth/steam';
+import {
   InteractionType,
   verifySignature,
   ephemeral,
@@ -455,6 +462,105 @@ app.get('/api/auth/callback', async (c) => {
   // Applicants land on their own profile page (which shows the "in review" state
   // and lets them fill out their profile); members go to the home page.
   return c.redirect(pendingNow ? `/members/${userId}` : '/');
+});
+
+/**
+ * Link the currently signed-in SkF member to Steam via OpenID.
+ * This is account linking, not a replacement for Discord as the site's login.
+ */
+app.get('/api/auth/steam/link', async (c) => {
+  const viewer = c.get('viewer');
+  if (!viewer || c.get('authKind') !== 'web') {
+    return c.redirect('/login?error=auth_required');
+  }
+
+  const state = newState();
+  const callback = new URL('/api/auth/steam/callback', c.req.url);
+  callback.searchParams.set('state', state);
+  const realm = new URL(c.req.url).origin + '/';
+
+  c.header('Set-Cookie', steamStateCookie(state));
+  return c.redirect(steamAuthorizeUrl(callback.toString(), realm));
+});
+
+app.get('/api/auth/steam/callback', async (c) => {
+  const viewer = c.get('viewer');
+  if (!viewer || c.get('authKind') !== 'web') {
+    c.header('Set-Cookie', clearedSteamStateCookie);
+    return c.redirect('/login?error=auth_required');
+  }
+
+  const url = new URL(c.req.url);
+  const state = url.searchParams.get('state');
+  const expectedState = getCookie(c, STEAM_STATE_COOKIE);
+
+  if (!state || !expectedState || state !== expectedState) {
+    c.header('Set-Cookie', clearedSteamStateCookie);
+    return c.redirect(`/members/${viewer.id}?steam=state_error`);
+  }
+
+  if (url.searchParams.get('openid.mode') === 'cancel') {
+    c.header('Set-Cookie', clearedSteamStateCookie);
+    return c.redirect(`/members/${viewer.id}?steam=cancelled`);
+  }
+
+  const expectedReturnTo = new URL('/api/auth/steam/callback', c.req.url);
+  expectedReturnTo.searchParams.set('state', state);
+
+  try {
+    const steamId = await verifySteamCallback(url.searchParams, expectedReturnTo.toString());
+    const database = db(c.env);
+
+    const claimed = await database.query.quakePlayerLinks.findFirst({
+      where: eq(s.quakePlayerLinks.steamId, steamId),
+    });
+    if (claimed && claimed.userId !== viewer.id) {
+      c.header('Set-Cookie', clearedSteamStateCookie);
+      return c.redirect(`/members/${viewer.id}?steam=already_linked`);
+    }
+
+    const target = await database.query.users.findFirst({ where: eq(s.users.id, viewer.id) });
+    if (!target) {
+      c.header('Set-Cookie', clearedSteamStateCookie);
+      return c.redirect('/login?error=member_missing');
+    }
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    await database
+      .insert(s.quakePlayerLinks)
+      .values({
+        userId: viewer.id,
+        steamId,
+        quakeName: target.displayName,
+        updatedAt: nowSec,
+      })
+      .onConflictDoUpdate({
+        target: s.quakePlayerLinks.userId,
+        set: { steamId, quakeName: target.displayName, updatedAt: nowSec },
+      });
+
+    await database.insert(s.auditLog).values({
+      actorId: viewer.id,
+      action: 'member.quake_link',
+      targetType: 'user',
+      targetId: String(viewer.id),
+      meta: { steamId: steamId.slice(-6), method: 'steam_openid' },
+      source: 'user',
+    });
+
+    c.executionCtx.waitUntil(
+      collectPublicArena(c.env).catch((err) =>
+        console.error('Public Arena refresh after Steam link failed', err),
+      ),
+    );
+
+    c.header('Set-Cookie', clearedSteamStateCookie);
+    return c.redirect(`/members/${viewer.id}?steam=linked`);
+  } catch (err) {
+    console.error('Steam OpenID link failed', err);
+    c.header('Set-Cookie', clearedSteamStateCookie);
+    return c.redirect(`/members/${viewer.id}?steam=verification_failed`);
+  }
 });
 
 app.post('/api/auth/logout', async (c) => {
