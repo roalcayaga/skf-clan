@@ -253,6 +253,150 @@
 }
 .quake-benchmark > strong { color: #ff5b5b; font-size: 9px; letter-spacing: .1em; }
 .quake-benchmark > b { color: #00d9f5; font-size: 11px; }
+
+.player-card {
+  overflow: hidden;
+  border-color: rgba(0,217,245,.16);
+  background:
+    linear-gradient(120deg, rgba(0,217,245,.035), transparent 42%),
+    linear-gradient(300deg, rgba(255,42,42,.025), transparent 38%),
+    var(--color-surface);
+}
+.player-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.player-card-top h3 { margin: 2px 0 0; font-size: 18px; }
+.player-card-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 5px;
+  color: #819399;
+  font-size: 9px;
+}
+.player-card-status a { color: #66c0f4; text-decoration: none; font-weight: 800; }
+.steam-verified {
+  color: #66c0f4 !important;
+  font-weight: 900;
+}
+.player-card-core {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-top: 13px;
+}
+.player-card-metric {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 8px;
+  background: rgba(0,0,0,.12);
+}
+.player-card-metric.primary { border-color: rgba(0,217,245,.22); }
+.player-card-metric > span,
+.player-card-form > span,
+.player-card-strength > span,
+.player-recent-title {
+  display: block;
+  color: #819399;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+.player-card-metric strong {
+  display: block;
+  margin-top: 3px;
+  color: #f2f7f8;
+  font-size: 22px;
+  line-height: 1;
+}
+.player-card-metric.primary strong { color: #00d9f5; }
+.player-card-metric small { color: #68777b; font-size: 8px; }
+.player-card-lower {
+  display: grid;
+  grid-template-columns: 1.4fr .8fr;
+  gap: 7px;
+  margin-top: 8px;
+}
+.player-card-form,
+.player-card-strength {
+  padding: 10px 11px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px;
+  background: rgba(255,255,255,.012);
+}
+.player-form-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+.player-form-dots b,
+.player-match-result {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+}
+.player-form-dots b.is-win,
+.player-match-result.is-win { color: #00d9f5; background: rgba(0,217,245,.1); border: 1px solid rgba(0,217,245,.24); }
+.player-form-dots b.is-loss,
+.player-match-result.is-loss { color: #ff6868; background: rgba(255,42,42,.08); border: 1px solid rgba(255,42,42,.22); }
+.player-form-dots b.is-draw,
+.player-match-result.is-draw { color: #c7d0d2; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+.player-form-dots em { color: #68777b; font-size: 9px; font-style: normal; }
+.player-card-strength strong {
+  display: block;
+  margin-top: 5px;
+  color: #f2f7f8;
+  font-size: 13px;
+}
+.player-card-strength small { color: #819399; font-size: 8px; }
+.player-recent-matches {
+  margin-top: 9px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  padding-top: 9px;
+}
+.player-match-row {
+  display: grid;
+  grid-template-columns: 28px minmax(100px,1fr) 45px 48px 42px 76px;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  color: #819399;
+  font-size: 9px;
+}
+.player-match-map { color: #f2f7f8; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player-match-row small { text-align: right; color: #68777b; }
+.player-card-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.player-card-empty p { margin-bottom: 0; }
+
+@media (max-width: 700px) {
+  .player-card-top,
+  .player-card-empty { flex-direction: column; align-items: stretch; }
+  .player-card-core { grid-template-columns: repeat(2,1fr); }
+  .player-card-lower { grid-template-columns: 1fr; }
+  .player-match-row {
+    grid-template-columns: 28px minmax(80px,1fr) 38px 44px;
+  }
+  .player-match-row > span:nth-of-type(3),
+  .player-match-row small { display: none; }
+}
+
 .competitive-benchmark-card {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
