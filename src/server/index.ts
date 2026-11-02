@@ -545,7 +545,7 @@ app.get('/api/auth/steam/callback', async (c) => {
       targetType: 'user',
       targetId: String(viewer.id),
       meta: { steamId: steamId.slice(-6), method: 'steam_openid' },
-      source: 'user',
+      source: 'web',
     });
 
     c.executionCtx.waitUntil(
