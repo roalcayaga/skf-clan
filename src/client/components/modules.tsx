@@ -556,6 +556,10 @@ function NewsModule({ config }: { config: Config }) {
 interface RosterMode {
   gameType: string;
   rating: number | null;
+  totalGames: number;
+  wins: number;
+  losses: number;
+  winRate: number;
 }
 
 interface RosterPublicPlayer {
@@ -572,6 +576,7 @@ interface RosterMember {
   avatar: string | null;
   profileImageUrl: string | null;
   rankName: string | null;
+  publicSlug: string;
 }
 
 function RosterModule({ config }: { config: Config }) {
@@ -615,7 +620,7 @@ function RosterModule({ config }: { config: Config }) {
         <ul className="roster-mini">
           {state.members.map((m) => (
             <li key={m.id}>
-              <Link to={`/members/${m.id}`} className="roster-mini-item">
+              <Link to={`/player/${m.publicSlug}`} className="roster-mini-item">
                 <img className="avatar-sm" src={memberAvatar(m, 64)} alt="" loading="lazy" />
                 <span className="roster-mini-name">{memberName(m)}</span>
                 <span className="roster-mini-meta">
@@ -624,7 +629,10 @@ function RosterModule({ config }: { config: Config }) {
                     const player = performance.get(m.id);
                     const mode = player?.modes.find((item) => item.gameType === 'CA') ?? player?.modes[0];
                     return mode?.rating != null ? (
-                      <span className="roster-mini-elo">ELO {Math.round(mode.rating)}</span>
+                      <span className="roster-mini-elo">
+                        ELO {Math.round(mode.rating)}
+                        {mode.totalGames > 0 ? ` · ${mode.winRate}% W` : ''}
+                      </span>
                     ) : null;
                   })()}
                 </span>
