@@ -499,12 +499,25 @@ export default function MemberDetail() {
                 isSelf={isSelf}
                 onSave={({ displayName, bio, steamId }) =>
                   run(async () => {
+                    const payload: {
+                      displayName?: string;
+                      bio?: string;
+                      steamId?: string | null;
+                    } = {};
+
+                    if (displayName !== (member.displayName ?? '')) payload.displayName = displayName;
+                    if (bio !== (member.bio ?? '')) payload.bio = bio;
+                    if (steamId !== (member.steamId ?? '')) payload.steamId = steamId || null;
+
                     const res = await api.patch<{
                       discordSync?: { synced: boolean; warning?: string };
-                    }>(`/members/${member.id}/profile`, { displayName, bio, steamId });
+                      steamId?: string | null;
+                    }>(`/members/${member.id}/profile`, payload);
+
                     if (res.discordSync?.warning) return { warning: res.discordSync.warning };
                     if (res.discordSync?.synced)
                       return 'Saved — the Discord nickname was updated to match.';
+                    if ('steamId' in payload) return res.steamId ? 'Steam account linked.' : 'Steam account unlinked.';
                     return 'Profile saved.';
                   })
                 }
