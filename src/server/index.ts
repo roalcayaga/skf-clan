@@ -42,6 +42,7 @@ import { awardActivityMedals } from './medals/activity';
 import { recordActivity } from './attendance';
 import { materializeRecurringEvents } from './events/recurrence';
 import { collectCompetitiveStats } from './competitive/collector';
+import { collectPublicArena } from './competitive/public';
 import ranks from './routes/ranks';
 import members from './routes/members';
 import bansRoutes from './routes/bans';
@@ -64,6 +65,7 @@ import gamesRoutes from './routes/games';
 import warRecordsRoutes from './routes/warrecords';
 import eventsRoutes from './routes/events';
 import competitiveRoutes from './routes/competitive';
+import pulseRoutes from './routes/pulse';
 import auditRoutes from './routes/audit';
 import pagesRoutes from './routes/pages';
 import navRoutes from './routes/nav';
@@ -479,6 +481,7 @@ app.route('/api/games', gamesRoutes);
 app.route('/api/warrecords', warRecordsRoutes);
 app.route('/api/events', eventsRoutes);
 app.route('/api/competitive', competitiveRoutes);
+app.route('/api/skf/pulse', pulseRoutes);
 app.route('/api/audit', auditRoutes);
 app.route('/api/pages', pagesRoutes);
 app.route('/api/nav', navRoutes);
@@ -846,6 +849,11 @@ export default {
       collectCompetitiveStats(env)
         .then((r) => (r.added || r.warning) && console.log('Competitive collect:', JSON.stringify(r)))
         .catch((err) => console.error('Competitive collect failed', err)),
+    );
+    ctx.waitUntil(
+      collectPublicArena(env)
+        .then((r) => (r.checked || r.updated) && console.log('Public Arena collect:', JSON.stringify(r)))
+        .catch((err) => console.error('Public Arena collect failed', err)),
     );
 
     // The 5-minute reconcile tick needs the bot.
