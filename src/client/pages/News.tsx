@@ -32,7 +32,7 @@ function dateLabel(unix: number | null): string {
 }
 
 export default function News() {
-  const { can } = useSession();
+  useSession();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,11 +63,6 @@ export default function News() {
           <h1>Crónicas</h1>
           <p>Historias, wars, hitos y capítulos de Shaolin Kung Fu.</p>
         </div>
-        {can('news.create') && (
-          <Link className="btn-link" to="/admin/news">
-            Administrar crónicas
-          </Link>
-        )}
       </header>
 
       {!latest ? (
