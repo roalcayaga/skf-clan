@@ -54,6 +54,7 @@ import SigilLoader from '../components/SigilLoader';
 // below invokes exactly one of these per render, so this is a pure packaging
 // change: same components, same props, nothing about behavior moves.
 const NewsAdmin = lazy(() => import('./NewsAdmin'));
+const HistoryAdmin = lazy(() => import('./HistoryAdmin'));
 const GalleryAdmin = lazy(() => import('./GalleryAdmin'));
 const Ranks = lazy(() => import('./Ranks'));
 const Roles = lazy(() => import('./Roles'));
@@ -97,6 +98,7 @@ const ITEM_ICONS: Record<string, typeof FileText> = {
   pages: FileText,
   navigation: Navigation,
   news: Newspaper,
+  history: History,
   gallery: Images,
   training: GraduationCap,
   admissions: UserPlus,
@@ -122,6 +124,7 @@ const TAB_RENDERERS: Record<string, () => ReactNode> = {
   builtinpages: () => <BuiltinPagesAdmin />,
   navigation: () => <NavAdmin />,
   news: () => <NewsAdmin />,
+  history: () => <HistoryAdmin />,
   gallery: () => <GalleryAdmin />,
   training: () => <TrainingAdmin />,
   applicants: () => <ApplicantsAdmin />,
