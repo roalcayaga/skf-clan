@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
+import '../competitive.css';
 import { useSession } from '../lib/session';
 import type {
   CompetitiveMatchView,
