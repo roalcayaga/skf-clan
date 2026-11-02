@@ -1830,3 +1830,140 @@
     max-width: 54vw;
   }
 }
+
+
+/* =========================
+   SkF Dojo — mobile overflow hardening
+   ========================= */
+
+.competitive-hub,
+.competitive-stack,
+.dojo-overview,
+.competitive-two-col,
+.competitive-players-layout,
+.match-room-layout,
+.match-room-main,
+.match-room-list,
+.competitive-panel,
+.competitive-live,
+.competitive-player-card,
+.dojo-next-activity,
+.dojo-calendar-panel,
+.dojo-master-week,
+.dojo-master-day,
+.dojo-master-day > div,
+.dojo-master-card,
+.dojo-week-pulse,
+.dojo-recent-list,
+.dojo-recent-list > div,
+.dojo-shortcuts,
+.competitive-mini-ranking,
+.competitive-mini-ranking button,
+.competitive-match,
+.competitive-match-main,
+.match-room-card,
+.match-room-rsvp,
+.match-room-lineup,
+.match-room-demos,
+.match-room-report,
+.rival-intel {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.competitive-tabs,
+.competitive-table-wrap,
+.bracket-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.dojo-recent-list > div > span,
+.competitive-mini-ranking button > span,
+.match-room-card > header > div,
+.match-room-lineup-list > div,
+.match-room-demos li,
+.rival-intel-list > div {
+  min-width: 0;
+}
+
+.dojo-recent-list span strong,
+.dojo-recent-list span small,
+.competitive-mini-ranking button > span strong,
+.competitive-mini-ranking button > span small,
+.match-room-card h3,
+.match-room-report p,
+.rival-intel-list p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.match-room-demos li > *,
+.match-room-lineup-add > *,
+.match-room-manage > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.match-room-demos a {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+@media (max-width: 720px) {
+  .competitive-hub {
+    overflow-x: hidden;
+  }
+
+  .competitive-hero,
+  .competitive-hero > div,
+  .competitive-section-head,
+  .competitive-section-head > div,
+  .dojo-calendar-head,
+  .dojo-calendar-head > div,
+  .dojo-next-grid,
+  .dojo-next-grid > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .competitive-tabs {
+    overscroll-behavior-x: contain;
+  }
+
+  .competitive-table-wrap,
+  .bracket-scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dojo-recent-list > div {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+  }
+
+  .competitive-mini-ranking button {
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+  }
+
+  .competitive-match {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+  }
+
+  .match-room-lineup-add,
+  .match-room-manage {
+    width: 100%;
+  }
+
+  .match-room-lineup-add select,
+  .match-room-manage input,
+  .match-room-manage textarea {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .match-room-manage input[type='number'] {
+    width: min(100%, 88px);
+  }
+}
