@@ -75,6 +75,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
         label: 'Applicants & Bans',
         tabs: [
           { key: 'applicants', label: 'Applicants', permission: 'members.approve' },
+          { key: 'scrims', label: 'Scrims / PCW', permission: 'events.manage' },
           { key: 'bans', label: 'Bans', permission: 'members.ban' },
         ],
       },
