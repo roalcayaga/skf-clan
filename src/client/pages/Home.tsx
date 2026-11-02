@@ -40,9 +40,10 @@ export default function Home() {
             del clan son públicas; el Dojo y las herramientas competitivas quedan reservadas para miembros.
           </p>
           <div className="public-home-actions">
-            <Link className="btn-cta primary" to="/history">Ver Historia</Link>
-            <Link className="btn-cta" to="/news">Leer Crónicas</Link>
-            <Link className="btn-cta ghost" to="/login">Entrar con Discord</Link>
+            <Link className="btn-cta primary" to="/challenge">Desafiar a SkF</Link>
+            <Link className="btn-cta" to="/join">Postular a SkF</Link>
+            <Link className="btn-cta ghost" to="/history">Ver Historia</Link>
+            <Link className="btn-cta ghost" to="/news">Leer Crónicas</Link>
           </div>
         </section>
       )}
