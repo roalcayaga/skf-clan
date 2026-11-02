@@ -65,6 +65,28 @@ function normalizeSkfNav(config: NavConfig): NavConfig {
       });
 
   const items = cleanItems(config.items);
+
+  const hasHistory = (list: NavConfig['items']): boolean =>
+    list.some(
+      (item) =>
+        (item.type === 'link' && item.kind === 'builtin' && item.target === 'history') ||
+        (item.type === 'group' && hasHistory(item.children ?? [])),
+    );
+
+  if (!hasHistory(items)) {
+    const chroniclesIndex = items.findIndex(
+      (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'news',
+    );
+    const insertAt = chroniclesIndex >= 0 ? chroniclesIndex + 1 : 1;
+    items.splice(insertAt, 0, {
+      id: 'skf-history',
+      type: 'link',
+      label: 'Historia',
+      kind: 'builtin',
+      target: 'history',
+    });
+  }
+
   const hasArena = (list: NavConfig['items']): boolean =>
     list.some(
       (item) =>
