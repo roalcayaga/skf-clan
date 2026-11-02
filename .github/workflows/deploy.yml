@@ -3,6 +3,8 @@ name: Deploy SkF to Cloudflare
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -39,11 +41,11 @@ jobs:
         run: npm test
 
       - name: Deploy to Cloudflare
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        if: ${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
         run: npx wrangler deploy -c wrangler.jsonc
 
       - name: Cloudflare credentials not configured
-        if: ${{ env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == '' }}
+        if: ${{ github.event_name == 'push' && (env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == '') }}
         run: |
           echo "Build/tests passed."
           echo "Deploy skipped because CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not configured in GitHub Actions secrets."

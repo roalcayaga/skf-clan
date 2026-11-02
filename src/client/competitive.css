@@ -1,0 +1,911 @@
+.competitive-hub {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+}
+
+.competitive-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  overflow: hidden;
+  padding: 28px;
+  border: 1px solid rgba(0, 217, 245, 0.22);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(0, 217, 245, 0.12), transparent 35%),
+    radial-gradient(circle at 90% 100%, rgba(255, 42, 42, 0.1), transparent 30%),
+    #080d0f;
+}
+
+.competitive-hero::before,
+.competitive-hero::after {
+  position: absolute;
+  top: 0;
+  height: 2px;
+  content: "";
+}
+
+.competitive-hero::before {
+  left: 0;
+  width: 58%;
+  background: #00d9f5;
+}
+
+.competitive-hero::after {
+  right: 0;
+  width: 22%;
+  background: #ff2a2a;
+}
+
+.competitive-kicker,
+.competitive-section-head span {
+  color: #00d9f5;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.competitive-hero h1 {
+  margin: 6px 0 5px;
+  color: #f2f7f8;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1;
+}
+
+.competitive-hero p {
+  max-width: 680px;
+  margin: 0;
+  color: #819399;
+}
+
+.competitive-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.competitive-updated {
+  color: #819399;
+  font-size: 11px;
+}
+
+.competitive-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.competitive-tabs button {
+  flex: 0 0 auto;
+  padding: 9px 15px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #819399;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.competitive-tabs button:hover,
+.competitive-tabs button.active {
+  background: rgba(0, 217, 245, 0.08);
+  color: #00d9f5;
+}
+
+.competitive-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.competitive-alert {
+  padding: 11px 14px;
+  border: 1px solid rgba(255, 42, 42, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 42, 42, 0.06);
+  color: #ff8888;
+  font-size: 12px;
+}
+
+.competitive-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.competitive-kpis > div,
+.competitive-player-kpis > div,
+.competitive-live-grid > div {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.competitive-kpis span,
+.competitive-player-kpis span,
+.competitive-live-grid span {
+  display: block;
+  margin-bottom: 5px;
+  color: #819399;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.competitive-kpis strong {
+  color: #f2f7f8;
+  font-size: 28px;
+}
+
+.competitive-kpis em {
+  margin-left: 2px;
+  color: #00d9f5;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.competitive-panel,
+.competitive-live,
+.competitive-player-card,
+.competitive-dojo-head {
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(5, 10, 12, 0.72);
+}
+
+.competitive-live {
+  border-color: rgba(0, 217, 245, 0.18);
+}
+
+.competitive-section-head,
+.competitive-dojo-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.competitive-section-head {
+  margin-bottom: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.competitive-section-head h2,
+.competitive-dojo-head h2 {
+  margin: 3px 0 0;
+  color: #f2f7f8;
+  font-size: 19px;
+}
+
+.competitive-section-head small {
+  color: #819399;
+}
+
+.competitive-section-head .link-btn {
+  border: 0;
+  background: transparent;
+  color: #00d9f5;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.competitive-section-head b {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.competitive-section-head b.online {
+  color: #00d9f5;
+}
+
+.competitive-section-head b.offline {
+  color: #ff2a2a;
+}
+
+.competitive-live-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.competitive-live-grid strong {
+  color: #f2f7f8;
+  font-size: 14px;
+}
+
+.competitive-live-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.competitive-live-players > span {
+  padding: 6px 9px;
+  border: 1px solid rgba(0, 217, 245, 0.18);
+  border-radius: 999px;
+  color: #f2f7f8;
+  font-size: 11px;
+}
+
+.competitive-live-players small {
+  margin-left: 4px;
+  color: #819399;
+}
+
+.competitive-two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 18px;
+}
+
+.competitive-match-list {
+  display: grid;
+  gap: 7px;
+}
+
+.competitive-match-list.is-full {
+  gap: 9px;
+}
+
+.competitive-match {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.competitive-match.is-win {
+  border-left: 2px solid #00d9f5;
+}
+
+.competitive-match.is-loss {
+  border-left: 2px solid #ff2a2a;
+}
+
+.competitive-match.is-draw {
+  border-left: 2px solid #d5b83d;
+}
+
+.competitive-match-result {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  color: #819399;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.is-win .competitive-match-result {
+  color: #00d9f5;
+}
+
+.is-loss .competitive-match-result {
+  color: #ff2a2a;
+}
+
+.is-draw .competitive-match-result {
+  color: #d5b83d;
+}
+
+.competitive-match-main {
+  min-width: 0;
+}
+
+.competitive-match-main strong,
+.competitive-match-main span,
+.competitive-match-main small {
+  display: block;
+}
+
+.competitive-match-main strong {
+  color: #f2f7f8;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.competitive-match-main span,
+.competitive-match-main small {
+  margin-top: 2px;
+  overflow: hidden;
+  color: #819399;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.competitive-match-score {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #819399;
+  font-size: 11px;
+}
+
+.competitive-match-score strong {
+  color: #f2f7f8;
+  font-size: 18px;
+}
+
+.competitive-mini-ranking {
+  display: grid;
+  gap: 6px;
+}
+
+.competitive-mini-ranking button {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.competitive-mini-ranking button:hover {
+  background: rgba(0, 217, 245, 0.035);
+}
+
+.competitive-mini-ranking button > b {
+  color: #00d9f5;
+  font-size: 12px;
+}
+
+.competitive-mini-ranking button > span strong,
+.competitive-mini-ranking button > span small {
+  display: block;
+}
+
+.competitive-mini-ranking button > span strong {
+  color: #f2f7f8;
+  font-size: 12px;
+}
+
+.competitive-mini-ranking button > span small {
+  margin-top: 2px;
+  color: #819399;
+  font-size: 9px;
+}
+
+.competitive-mini-ranking button > em {
+  color: #ff2a2a;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.competitive-next-dojo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.competitive-next-dojo > div {
+  padding: 12px;
+  border: 1px solid rgba(0, 217, 245, 0.12);
+  border-radius: 8px;
+  background: rgba(0, 217, 245, 0.025);
+}
+
+.competitive-next-dojo span,
+.competitive-next-dojo strong,
+.competitive-next-dojo small {
+  display: block;
+}
+
+.competitive-next-dojo span {
+  color: #00d9f5;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.competitive-next-dojo strong {
+  margin: 5px 0;
+  color: #f2f7f8;
+  font-size: 13px;
+}
+
+.competitive-next-dojo small {
+  color: #819399;
+}
+
+.competitive-weapons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.competitive-weapon {
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.competitive-weapon-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.competitive-weapon-head strong,
+.competitive-weapon-head span {
+  display: block;
+}
+
+.competitive-weapon-head strong {
+  color: #f2f7f8;
+  font-size: 12px;
+}
+
+.competitive-weapon-head span {
+  margin-top: 2px;
+  color: #819399;
+  font-size: 9px;
+}
+
+.competitive-weapon-head b {
+  color: #00d9f5;
+  font-size: 18px;
+}
+
+.competitive-bar {
+  height: 4px;
+  margin: 11px 0 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.competitive-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #00d9f5, #ff2a2a);
+}
+
+.competitive-weapon-meta {
+  display: flex;
+  gap: 12px;
+  color: #819399;
+  font-size: 9px;
+}
+
+.competitive-table-wrap {
+  overflow-x: auto;
+}
+
+.competitive-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.competitive-table th,
+.competitive-table td {
+  padding: 10px 9px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.competitive-table th {
+  color: #819399;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.competitive-table td {
+  color: #c7d2d5;
+}
+
+.competitive-table td strong,
+.competitive-table td small {
+  display: block;
+}
+
+.competitive-table td strong {
+  color: #f2f7f8;
+}
+
+.competitive-table td small {
+  margin-top: 2px;
+  color: #819399;
+  font-size: 8px;
+}
+
+.competitive-table tr.is-clickable {
+  cursor: pointer;
+}
+
+.competitive-table tr.is-clickable:hover td {
+  background: rgba(0, 217, 245, 0.025);
+}
+
+.competitive-rank {
+  color: #00d9f5 !important;
+  font-weight: 900;
+}
+
+.competitive-table .positive {
+  color: #00d9f5;
+}
+
+.competitive-table .negative {
+  color: #ff6666;
+}
+
+.competitive-form {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.form-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #596267;
+}
+
+.form-dot.is-win {
+  background: #00d9f5;
+  box-shadow: 0 0 5px rgba(0, 217, 245, 0.55);
+}
+
+.form-dot.is-loss {
+  background: #ff2a2a;
+}
+
+.form-dot.is-draw {
+  background: #d5b83d;
+}
+
+.competitive-players-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.5fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.competitive-player-card {
+  position: sticky;
+  top: 80px;
+  border-color: rgba(255, 42, 42, 0.18);
+}
+
+.competitive-player-head span {
+  color: #00d9f5;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.competitive-player-head h2 {
+  margin: 4px 0 10px;
+  color: #f2f7f8;
+  font-size: 25px;
+}
+
+.competitive-player-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  margin-top: 16px;
+}
+
+.competitive-player-kpis > div {
+  padding: 11px;
+}
+
+.competitive-player-kpis strong {
+  color: #f2f7f8;
+  font-size: 18px;
+}
+
+.competitive-player-weapons {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.competitive-player-weapons > div {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 2px 10px;
+  padding: 9px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.competitive-player-weapons span {
+  grid-row: 1 / span 2;
+  color: #ff2a2a;
+  font-weight: 900;
+}
+
+.competitive-player-weapons strong {
+  color: #f2f7f8;
+}
+
+.competitive-player-weapons small {
+  color: #819399;
+}
+
+.competitive-dojo-head {
+  align-items: center;
+  border-color: rgba(0, 217, 245, 0.16);
+}
+
+.competitive-dojo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.competitive-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(135px, 1fr));
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.competitive-day {
+  min-height: 290px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.competitive-day > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.competitive-day > header span {
+  color: #819399;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.competitive-day > header strong {
+  color: #f2f7f8;
+  font-size: 16px;
+}
+
+.competitive-day-body {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 7px;
+}
+
+.competitive-empty-day {
+  padding: 28px 0;
+  color: #3d474b;
+  text-align: center;
+}
+
+.dojo-card {
+  padding: 10px;
+  border: 1px solid rgba(0, 217, 245, 0.14);
+  border-left: 2px solid #00d9f5;
+  border-radius: 7px;
+  background:
+    linear-gradient(135deg, rgba(0, 217, 245, 0.04), transparent 55%),
+    rgba(0, 0, 0, 0.18);
+}
+
+.dojo-card time {
+  color: #00d9f5;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.dojo-card h3 {
+  margin: 4px 0;
+  color: #f2f7f8;
+  font-size: 12px;
+}
+
+.dojo-card p {
+  margin: 5px 0;
+  color: #a1afb3;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.dojo-card small {
+  color: #819399;
+  font-size: 8px;
+}
+
+.dojo-counts {
+  display: flex;
+  gap: 7px;
+  margin-top: 9px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.dojo-counts .available {
+  color: #00d9f5;
+}
+
+.dojo-counts .tentative {
+  color: #d5b83d;
+}
+
+.dojo-counts .unavailable {
+  color: #ff6767;
+}
+
+.dojo-rsvp {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.dojo-rsvp button {
+  flex: 1;
+  height: 27px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #819399;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.dojo-rsvp button.active.available {
+  border-color: rgba(0, 217, 245, 0.4);
+  background: rgba(0, 217, 245, 0.09);
+  color: #00d9f5;
+}
+
+.dojo-rsvp button.active.tentative {
+  border-color: rgba(213, 184, 61, 0.4);
+  background: rgba(213, 184, 61, 0.09);
+  color: #d5b83d;
+}
+
+.dojo-rsvp button.active.unavailable {
+  border-color: rgba(255, 42, 42, 0.4);
+  background: rgba(255, 42, 42, 0.08);
+  color: #ff6767;
+}
+
+.dojo-cancel {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6f7b7f;
+  cursor: pointer;
+  font-size: 8px;
+}
+
+.dojo-cancel:hover {
+  color: #ff6767;
+}
+
+.competitive-dojo-form {
+  border-color: rgba(255, 42, 42, 0.15);
+}
+
+.competitive-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+  margin-bottom: 14px;
+}
+
+.competitive-form-grid label {
+  display: grid;
+  gap: 5px;
+  color: #819399;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.competitive-form-grid label.is-wide {
+  grid-column: 1 / -1;
+}
+
+.competitive-form-grid input,
+.competitive-form-grid select,
+.competitive-form-grid textarea {
+  width: 100%;
+}
+
+@media (max-width: 1000px) {
+  .competitive-kpis,
+  .competitive-live-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .competitive-two-col,
+  .competitive-players-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .competitive-player-card {
+    position: static;
+  }
+
+  .competitive-next-dojo {
+    grid-template-columns: 1fr;
+  }
+
+  .competitive-week {
+    grid-template-columns: repeat(7, 160px);
+  }
+}
+
+@media (max-width: 700px) {
+  .competitive-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .competitive-hero-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .competitive-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .competitive-live-grid,
+  .competitive-weapons,
+  .competitive-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .competitive-section-head,
+  .competitive-dojo-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .competitive-match {
+    grid-template-columns: 32px 1fr auto;
+  }
+
+  .competitive-weapon-meta {
+    flex-wrap: wrap;
+  }
+}

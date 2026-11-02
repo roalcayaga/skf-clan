@@ -7,7 +7,7 @@
  */
 
 import { Hono } from 'hono';
-import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import * as s from '../../db/schema';
 import type { AppContext } from '../env';
 import { db, requirePermission } from '../middleware/auth';
@@ -113,6 +113,10 @@ async function saveRoles(database: ReturnType<typeof db>, eventId: number, roles
 events.get('/', requirePermission('events.view'), async (c) => {
   const viewer = c.get('viewer')!;
   const nowSec = Math.floor(Date.now() / 1000);
+  const fromParam = Number(c.req.query('from'));
+  const toParam = Number(c.req.query('to'));
+  const fromSec = Number.isFinite(fromParam) && fromParam > 0 ? Math.floor(fromParam) : nowSec;
+  const toSec = Number.isFinite(toParam) && toParam > fromSec ? Math.floor(toParam) : null;
   const database = db(c.env);
 
   const rows = await database
@@ -132,7 +136,13 @@ events.get('/', requirePermission('events.view'), async (c) => {
     })
     .from(s.events)
     .leftJoin(s.games, eq(s.events.gameId, s.games.id))
-    .where(and(eq(s.events.status, 'scheduled'), gte(s.events.endsAt, nowSec)))
+    .where(
+      and(
+        eq(s.events.status, 'scheduled'),
+        gte(s.events.endsAt, fromSec),
+        toSec != null ? lte(s.events.startsAt, toSec) : undefined,
+      ),
+    )
     .orderBy(asc(s.events.startsAt));
 
   const ids = rows.map((r) => r.id);
@@ -149,16 +159,16 @@ database
   .select({
     eventId: s.eventSignups.eventId,
     roleId: s.eventSignups.eventRoleId,
+    availability: s.eventSignups.availability,
     n: sql<number>`count(*)`,
   })
   .from(s.eventSignups)
-  .where(
-    and(
-      inArray(s.eventSignups.eventId, ids),
-      eq(s.eventSignups.availability, 'available'),
-    ),
-  )
-  .groupBy(s.eventSignups.eventId, s.eventSignups.eventRoleId),
+  .where(inArray(s.eventSignups.eventId, ids))
+  .groupBy(
+    s.eventSignups.eventId,
+    s.eventSignups.eventRoleId,
+    s.eventSignups.availability,
+  ),
     database
   .select({
     eventId: s.eventSignups.eventId,
@@ -181,10 +191,26 @@ database
 
   const totalByEvent = new Map<number, number>();
   const roleCount = new Map<string, number>();
+  const availabilityByEvent = new Map<
+    number,
+    { available: number; tentative: number; unavailable: number }
+  >();
   for (const cr of countRows) {
     const n = Number(cr.n);
-    totalByEvent.set(cr.eventId, (totalByEvent.get(cr.eventId) ?? 0) + n);
-    if (cr.roleId != null) roleCount.set(`${cr.eventId}:${cr.roleId}`, n);
+    const availability = availabilityByEvent.get(cr.eventId) ?? {
+      available: 0,
+      tentative: 0,
+      unavailable: 0,
+    };
+    availability[cr.availability] += n;
+    availabilityByEvent.set(cr.eventId, availability);
+
+    // Keep the historical signupCount + per-role capacity semantics: they count
+    // people who said they are actually available, not tentative/unavailable.
+    if (cr.availability === 'available') {
+      totalByEvent.set(cr.eventId, (totalByEvent.get(cr.eventId) ?? 0) + n);
+      if (cr.roleId != null) roleCount.set(`${cr.eventId}:${cr.roleId}`, n);
+    }
   }
 
   const rolesByEvent = new Map<number, unknown[]>();
@@ -219,6 +245,11 @@ for (const m of mine) {
     ...r,
     roles: rolesByEvent.get(r.id) ?? [],
     signupCount: totalByEvent.get(r.id) ?? 0,
+    availabilityCounts: availabilityByEvent.get(r.id) ?? {
+      available: 0,
+      tentative: 0,
+      unavailable: 0,
+    },
     mySignup: mineByEvent.get(r.id) ?? null,
     attended: attendedSet.has(r.id),
   }));
