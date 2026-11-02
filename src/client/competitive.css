@@ -1561,3 +1561,272 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================
+   SkF Dojo — mobile agenda + touch pass
+   ========================= */
+
+.dojo-day-mobile {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .competitive-tabs {
+    gap: 3px;
+    padding: 3px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .competitive-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .competitive-tabs button {
+    min-height: 44px;
+    padding: 9px 14px;
+    scroll-snap-align: start;
+  }
+
+  .competitive-panel,
+  .competitive-live,
+  .competitive-player-card,
+  .competitive-dojo-head {
+    padding: 15px;
+  }
+
+  .dojo-next-activity,
+  .dojo-calendar-panel {
+    padding: 15px;
+  }
+
+  .dojo-next-grid h2 {
+    font-size: clamp(26px, 8vw, 38px);
+  }
+
+  .dojo-next-grid p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .dojo-next-rsvp {
+    width: 100%;
+  }
+
+  .dojo-next-rsvp > div:last-child {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+  }
+
+  .dojo-next-rsvp button {
+    min-height: 44px;
+    padding: 7px 6px;
+    font-size: 10px;
+  }
+
+  .competitive-dojo-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    gap: 6px;
+  }
+
+  .competitive-dojo-actions button {
+    min-height: 42px;
+  }
+
+  .competitive-dojo-actions .primary {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* The main Dojo calendar becomes a vertical agenda instead of a wide desktop grid. */
+  .dojo-master-week {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .dojo-master-day {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .dojo-master-day > header {
+    min-height: 76px;
+    align-content: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 7px;
+    border-right: 1px solid rgba(255,255,255,.06);
+    border-bottom: 0;
+    text-align: center;
+  }
+
+  .dojo-master-day > header strong {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .dojo-day-desktop {
+    display: none;
+  }
+
+  .dojo-day-mobile {
+    display: block;
+    color: #819399;
+    font-size: 8px !important;
+    line-height: 1.15;
+  }
+
+  .dojo-master-day > div {
+    min-width: 0;
+    padding: 7px;
+  }
+
+  .dojo-master-day.is-empty {
+    opacity: .68;
+  }
+
+  .dojo-master-day.is-empty > header {
+    min-height: 54px;
+  }
+
+  .dojo-master-day.is-empty > div {
+    display: flex;
+    align-items: center;
+  }
+
+  .dojo-master-day.is-empty > div > i {
+    padding: 8px 4px;
+    color: #657176;
+    font-size: 9px;
+  }
+
+  .dojo-master-card {
+    min-height: 72px;
+    padding: 10px 11px;
+  }
+
+  .dojo-master-card h3 {
+    font-size: 12px;
+  }
+
+  .dojo-master-card small {
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  .dojo-week-pulse {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dojo-week-pulse > div {
+    min-height: 78px;
+  }
+
+  .dojo-shortcuts {
+    grid-template-columns: 1fr;
+  }
+
+  .dojo-shortcuts button {
+    min-height: 74px;
+  }
+
+  .competitive-mini-ranking button,
+  .competitive-section-head .link-btn {
+    min-height: 42px;
+  }
+
+  .competitive-mini-ranking button {
+    padding-block: 11px;
+  }
+
+  /* The training editor uses the same agenda language on mobile. */
+  .competitive-week {
+    grid-template-columns: 1fr;
+    overflow: visible;
+    gap: 7px;
+  }
+
+  .competitive-day {
+    display: grid;
+    grid-template-columns: 68px minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .competitive-day > header {
+    min-height: 68px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 5px;
+    border-right: 1px solid rgba(255,255,255,.06);
+    border-bottom: 0;
+  }
+
+  .competitive-day-body {
+    min-width: 0;
+  }
+
+  .dojo-rsvp {
+    gap: 6px;
+  }
+
+  .dojo-rsvp button {
+    min-height: 40px;
+    height: auto;
+  }
+
+  .dojo-cancel {
+    min-height: 36px;
+    padding: 6px 0;
+  }
+
+  .match-room-rsvp button,
+  .match-room-lineup-add button,
+  .match-room-manage button,
+  .match-room-upload {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .match-room-lineup-add select,
+  .match-room-manage input,
+  .match-room-manage textarea {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 520px) {
+  .dojo-next-rsvp > div:last-child {
+    grid-template-columns: 1fr;
+  }
+
+  .dojo-week-pulse {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .competitive-kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .competitive-match {
+    gap: 8px;
+    padding-inline: 9px;
+  }
+
+  .competitive-match-main span,
+  .competitive-match-main small {
+    max-width: 54vw;
+  }
+}
