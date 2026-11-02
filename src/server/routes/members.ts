@@ -12,6 +12,7 @@ import { grantRole, revokeRole, syncMemberRankRoles, reconcileMember } from '../
 import { announce } from '../discord/announce';
 import { deleteMediaByUrl } from './media';
 import { emitNotification } from '../notifications';
+import { claimLegacyIdentities } from '../legacy/ownership';
 
 const members = new Hono<AppContext>();
 
@@ -600,6 +601,14 @@ members.patch('/:id/profile', requireUser, async (c) => {
         meta: { displayName, discordSynced: discordSync?.synced ?? false },
       });
     }
+  }
+
+  if (body.displayName !== undefined) {
+    c.executionCtx.waitUntil(
+      claimLegacyIdentities(c.env, id, [displayName]).catch((err) =>
+        console.error('Legacy identity claim on profile update failed', err),
+      ),
+    );
   }
 
   return c.json({ ok: true, bio, displayName, profileImageUrl, steamId, discordSync });
