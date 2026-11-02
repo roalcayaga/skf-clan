@@ -38,6 +38,8 @@ const ForgeShare = lazy(() => import('./pages/ForgeShare'));
 // for the code of the other eleven. The <Suspense> already wrapping <Routes>
 // below (unchanged) covers all of these; this is a pure packaging change.
 const Login = lazy(() => import('./pages/Login'));
+const Challenge = lazy(() => import('./pages/Challenge'));
+const Join = lazy(() => import('./pages/Join'));
 const MemberDetail = lazy(() => import('./pages/MemberDetail'));
 const PlayerProfile = lazy(() => import('./pages/PlayerProfile'));
 const AccountSettings = lazy(() => import('./pages/AccountSettings'));
@@ -317,6 +319,8 @@ export default function App() {
         <Suspense fallback={<SigilLoader />}>
           <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/challenge" element={<Challenge />} />
+          <Route path="/join" element={<Join />} />
           {/* Setup only renders (full-bleed, above) while unclaimed; once claimed,
               visiting it just goes home. */}
           <Route path="/setup" element={<Navigate to="/" replace />} />
