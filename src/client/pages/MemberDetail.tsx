@@ -24,6 +24,7 @@ import WowCharacters from '../components/WowCharacters';
 import MemberTraining from '../components/MemberTraining';
 import MemberActivity from '../components/MemberActivity';
 import SigilEmblem from '../components/SigilEmblem';
+import MemberQuakePerformance from '../components/MemberQuakePerformance';
 
 interface Role {
   id: number;
@@ -80,6 +81,8 @@ interface Member {
   medals: Medal[];
   warRecords: WarRecord[];
   bio: string | null;
+  steamId: string | null;
+  quakeName: string | null;
 }
 interface Rank {
   id: number;
@@ -490,13 +493,14 @@ export default function MemberDetail() {
               <ProfileEditor
                 displayName={member.displayName ?? ''}
                 bio={member.bio ?? ''}
+                steamId={member.steamId ?? ''}
                 busy={busy}
                 isSelf={isSelf}
-                onSave={({ displayName, bio }) =>
+                onSave={({ displayName, bio, steamId }) =>
                   run(async () => {
                     const res = await api.patch<{
                       discordSync?: { synced: boolean; warning?: string };
-                    }>(`/members/${member.id}/profile`, { displayName, bio });
+                    }>(`/members/${member.id}/profile`, { displayName, bio, steamId });
                     if (res.discordSync?.warning) return { warning: res.discordSync.warning };
                     if (res.discordSync?.synced)
                       return 'Saved — the Discord nickname was updated to match.';
@@ -510,6 +514,8 @@ export default function MemberDetail() {
               <p className="muted">No bio yet.</p>
             )}
           </section>
+
+          <MemberQuakePerformance memberId={member.id} linkedSteamId={member.steamId} />
 
           <section className="block">
             <h3>Medals</h3>
@@ -827,20 +833,24 @@ function AwardWarRecordRow({
 function ProfileEditor({
   displayName,
   bio,
+  steamId,
   busy,
   isSelf,
   onSave,
 }: {
   displayName: string;
   bio: string;
+  steamId: string;
   busy: boolean;
   isSelf: boolean;
-  onSave: (v: { displayName: string; bio: string }) => void;
+  onSave: (v: { displayName: string; bio: string; steamId: string | null }) => void;
 }) {
   const [name, setName] = useState(displayName);
   const [text, setText] = useState(bio);
-  const dirty = name !== displayName || text !== bio;
+  const [steam, setSteam] = useState(steamId);
+  const dirty = name !== displayName || text !== bio || steam !== steamId;
   const nameValid = name.trim().length >= 2;
+  const steamValid = steam.trim() === '' || /^\d{17}$/.test(steam.trim());
 
   return (
     <div className="bio-editor">
@@ -861,6 +871,22 @@ function ProfileEditor({
       </p>
 
       <label className="field">
+        SteamID64
+        <input
+          value={steam}
+          inputMode="numeric"
+          maxLength={17}
+          placeholder="7656119…"
+          onChange={(e) => setSteam(e.target.value.replace(/\D/g, '').slice(0, 17))}
+          disabled={busy}
+          aria-invalid={!steamValid}
+        />
+      </label>
+      <p className="muted small">
+        Vincula tu identidad de Quake Club. Son 17 dígitos; permite seguir tus stats aunque cambies de nick.
+      </p>
+
+      <label className="field">
         Bio
         <textarea
           value={text}
@@ -875,9 +901,9 @@ function ProfileEditor({
       <div className="bio-actions">
         <button
           className="primary"
-          disabled={busy || !dirty || !nameValid}
+          disabled={busy || !dirty || !nameValid || !steamValid}
           title={!nameValid ? 'A display name is required' : undefined}
-          onClick={() => onSave({ displayName: name, bio: text })}
+          onClick={() => onSave({ displayName: name, bio: text, steamId: steam.trim() || null })}
         >
           Save profile
         </button>
@@ -887,6 +913,7 @@ function ProfileEditor({
             onClick={() => {
               setName(displayName);
               setText(bio);
+              setSteam(steamId);
             }}
           >
             Cancel
