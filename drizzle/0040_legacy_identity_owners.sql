@@ -81,8 +81,21 @@ SELECT 'DKdente', 190
 WHERE NOT EXISTS (SELECT 1 FROM legacy_members WHERE lower(name) = lower('DKdente'));
 
 -- If these rows already existed, still apply the canonical current identities/roles.
-UPDATE legacy_members SET note = coalesce(note, 'Fundador') WHERE lower(name) = lower('BuDaH');
-UPDATE legacy_members SET note = coalesce(note, 'El eterno capitán'), current_nick = 'VaSSagO' WHERE lower(name) = lower('VaSSagO');
+UPDATE legacy_members
+SET note = CASE
+  WHEN note IS NULL OR trim(note) = '' THEN 'Fundador'
+  WHEN lower(note) LIKE '%fundador%' THEN note
+  ELSE 'Fundador · ' || note
+END
+WHERE lower(name) = lower('BuDaH');
+UPDATE legacy_members
+SET note = CASE
+      WHEN note IS NULL OR trim(note) = '' THEN 'El eterno capitán'
+      WHEN lower(note) LIKE '%eterno capitán%' OR lower(note) LIKE '%eterno capitan%' THEN note
+      ELSE 'El eterno capitán · ' || note
+    END,
+    current_nick = 'VaSSagO'
+WHERE lower(name) = lower('VaSSagO');
 UPDATE legacy_members SET current_nick = 'alk4pone' WHERE lower(name) = lower('Ar3Z');
 UPDATE legacy_members SET current_nick = 'Hakai' WHERE lower(name) = lower('AS3SIN0');
 
@@ -91,7 +104,9 @@ UPDATE legacy_members
 SET owner_user_id = (
   SELECT users.id
   FROM users
-  WHERE lower(coalesce(users.display_name, users.global_name, users.username)) = lower(legacy_members.current_nick)
+  WHERE lower(users.display_name) = lower(legacy_members.current_nick)
+     OR lower(users.global_name) = lower(legacy_members.current_nick)
+     OR lower(users.username) = lower(legacy_members.current_nick)
   LIMIT 1
 )
 WHERE current_nick IS NOT NULL
@@ -99,5 +114,7 @@ WHERE current_nick IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM users
-    WHERE lower(coalesce(users.display_name, users.global_name, users.username)) = lower(legacy_members.current_nick)
+    WHERE lower(users.display_name) = lower(legacy_members.current_nick)
+       OR lower(users.global_name) = lower(legacy_members.current_nick)
+       OR lower(users.username) = lower(legacy_members.current_nick)
   );
