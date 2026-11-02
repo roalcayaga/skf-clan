@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 import type { HangarItem } from '../shared/hangar';
 import type { Gear } from '../shared/wow';
@@ -832,6 +832,152 @@ export const matchParticipants = sqliteTable(
     stats: text('stats', { mode: 'json' }).$type<Record<string, number>>(),
   },
   (t) => [primaryKey({ columns: [t.matchId, t.userId] }), index('mp_user_idx').on(t.userId)],
+);
+
+/* ------------------------------------------------------------------ *
+ * SkF Performance OS — Quake identity, structured match data, public
+ * QuakeClub snapshots, and the event stream that powers SkF Pulse.
+ * ------------------------------------------------------------------ */
+
+export const quakePlayerLinks = sqliteTable(
+  'quake_player_links',
+  {
+    userId: integer('user_id')
+      .primaryKey()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    steamId: text('steam_id').notNull().unique(),
+    quakeName: text('quake_name'),
+    createdAt: integer('created_at').notNull().default(now),
+    updatedAt: integer('updated_at').notNull().default(now),
+  },
+  (t) => [uniqueIndex('quake_player_links_steam_idx').on(t.steamId)],
+);
+
+export const quakeMatches = sqliteTable(
+  'quake_matches',
+  {
+    externalId: text('external_id').primaryKey(),
+    matchId: text('match_id'),
+    scope: text('scope', { enum: ['skf', 'public'] }).notNull(),
+    serverName: text('server_name').notNull(),
+    map: text('map').notNull(),
+    gameType: text('game_type').notNull(),
+    playedAt: integer('played_at').notNull(),
+    duration: integer('duration').notNull().default(0),
+    team1Score: integer('team1_score').notNull().default(0),
+    team2Score: integer('team2_score').notNull().default(0),
+    rated: integer('rated', { mode: 'boolean' }).notNull().default(true),
+    aborted: integer('aborted', { mode: 'boolean' }).notNull().default(false),
+    createdAt: integer('created_at').notNull().default(now),
+  },
+  (t) => [
+    index('quake_matches_scope_played_idx').on(t.scope, t.playedAt),
+    index('quake_matches_mode_played_idx').on(t.gameType, t.playedAt),
+  ],
+);
+
+export const quakeMatchPlayers = sqliteTable(
+  'quake_match_players',
+  {
+    externalMatchId: text('external_match_id')
+      .notNull()
+      .references(() => quakeMatches.externalId, { onDelete: 'cascade' }),
+    steamId: text('steam_id').notNull(),
+    name: text('name').notNull(),
+    team: text('team'),
+    clan: text('clan'),
+    kills: integer('kills').notNull().default(0),
+    deaths: integer('deaths').notNull().default(0),
+    score: integer('score').notNull().default(0),
+    damageDealt: integer('damage_dealt').notNull().default(0),
+    damageTaken: integer('damage_taken').notNull().default(0),
+    rounds: integer('rounds').notNull().default(0),
+    roundsWon: integer('rounds_won').notNull().default(0),
+    performance: real('performance'),
+    eloChange: real('elo_change'),
+    weapons: text('weapons', { mode: 'json' }).$type<Record<string, unknown>>(),
+    medals: text('medals', { mode: 'json' }).$type<Record<string, number>>(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.externalMatchId, t.steamId] }),
+    index('quake_match_players_steam_idx').on(t.steamId, t.externalMatchId),
+  ],
+);
+
+export const quakePublicCurrent = sqliteTable(
+  'quake_public_current',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    gameType: text('game_type').notNull(),
+    steamId: text('steam_id').notNull(),
+    username: text('username').notNull(),
+    rating: real('rating'),
+    deviation: real('deviation'),
+    totalGames: integer('total_games').notNull().default(0),
+    wins: integer('wins').notNull().default(0),
+    losses: integer('losses').notNull().default(0),
+    kills: integer('kills'),
+    deaths: integer('deaths'),
+    kd: real('kd'),
+    raw: text('raw', { mode: 'json' }).$type<Record<string, unknown>>(),
+    capturedAt: integer('captured_at').notNull().default(now),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.gameType] }),
+    index('quake_public_current_rating_idx').on(t.gameType, t.rating),
+  ],
+);
+
+export const quakePublicDaily = sqliteTable(
+  'quake_public_daily',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    day: text('day').notNull(),
+    gameType: text('game_type').notNull(),
+    steamId: text('steam_id').notNull(),
+    username: text('username').notNull(),
+    rating: real('rating'),
+    deviation: real('deviation'),
+    totalGames: integer('total_games').notNull().default(0),
+    wins: integer('wins').notNull().default(0),
+    losses: integer('losses').notNull().default(0),
+    kills: integer('kills'),
+    deaths: integer('deaths'),
+    kd: real('kd'),
+    raw: text('raw', { mode: 'json' }).$type<Record<string, unknown>>(),
+    capturedAt: integer('captured_at').notNull().default(now),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.day, t.gameType] }),
+    index('quake_public_daily_user_idx').on(t.userId, t.gameType, t.day),
+  ],
+);
+
+export const pulseEvents = sqliteTable(
+  'pulse_events',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    uniqueKey: text('unique_key').notNull().unique(),
+    kind: text('kind').notNull(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+    title: text('title').notNull(),
+    body: text('body'),
+    metric: text('metric'),
+    value: real('value'),
+    delta: real('delta'),
+    occurredAt: integer('occurred_at').notNull(),
+    sharePath: text('share_path'),
+    createdAt: integer('created_at').notNull().default(now),
+  },
+  (t) => [
+    uniqueIndex('pulse_events_unique_idx').on(t.uniqueKey),
+    index('pulse_events_time_idx').on(t.occurredAt),
+    index('pulse_events_user_time_idx').on(t.userId, t.occurredAt),
+  ],
 );
 
 /* ------------------------------------------------------------------ *
