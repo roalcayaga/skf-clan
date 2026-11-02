@@ -330,6 +330,20 @@ app.get('/api/auth/callback', async (c) => {
         );
       }
     }
+
+    // If this account now exists in the guild, make Discord catch up with the
+    // display name stored on the site. This heals applicants who chose their
+    // name before joining Discord, and members who temporarily left/rejoined.
+    if (inGuild && existing.displayName) {
+      const client = await discordClient(c.env, database);
+      if (client) {
+        c.executionCtx.waitUntil(
+          client
+            .setNickname(existing.discordId, existing.displayName, 'mustr: nickname sync on login')
+            .catch((err) => console.error('Nickname sync on login failed', err)),
+        );
+      }
+    }
   } else {
     // First sign-in. In the guild → a full member with the default rank + roles.
     // Not in the guild → a pending applicant (no rank, no roles) until they join
