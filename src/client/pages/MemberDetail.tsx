@@ -961,7 +961,15 @@ function ProfileEditor({
         >
           Save profile
         </button>
-        <button disabled={busy} onClick={onCancel}>
+        <button
+          disabled={busy}
+          onClick={() => {
+            setName(displayName);
+            setText(bio);
+            setSteam(steamId);
+            onCancel();
+          }}
+        >
           Cancel
         </button>
       </div>
