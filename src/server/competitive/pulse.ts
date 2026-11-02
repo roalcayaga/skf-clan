@@ -198,6 +198,8 @@ export async function buildPulseHome(
             profileImageUrl: s.legacyMembers.profileImageUrl,
             yearsActive: s.legacyMembers.yearsActive,
             note: s.legacyMembers.note,
+            currentNick: s.legacyMembers.currentNick,
+            ownerUserId: s.legacyMembers.ownerUserId,
           })
           .from(s.legacyMembers)
           .orderBy(s.legacyMembers.sortOrder, s.legacyMembers.name)
