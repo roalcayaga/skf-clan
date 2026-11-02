@@ -13,6 +13,7 @@ import { announce } from '../discord/announce';
 import { deleteMediaByUrl } from './media';
 import { emitNotification } from '../notifications';
 import { claimLegacyIdentities } from '../legacy/ownership';
+import { playerSlug } from '../../shared/playerSlug';
 
 const members = new Hono<AppContext>();
 
@@ -125,6 +126,7 @@ for (const medal of medalRows) {
 
 const membersWithMedals = rows.map((row) => ({
   ...row,
+  publicSlug: playerSlug(memberName(row), row.id),
   medals: medalsByUser.get(row.id) ?? [],
 }));
 const legacyRows =
@@ -386,6 +388,25 @@ members.post('/:id/ban', requirePermission('members.ban'), async (c) => {
  * Pending applicants and banned accounts are never public. Retired/inactive
  * members remain visible so clan history and old achievements keep working.
  */
+members.get('/public/slug/:slug', async (c) => {
+  const wanted = c.req.param('slug').trim().toLowerCase();
+  const database = db(c.env);
+  const candidates = await database
+    .select({
+      id: s.users.id,
+      username: s.users.username,
+      globalName: s.users.globalName,
+      displayName: s.users.displayName,
+      status: s.users.status,
+    })
+    .from(s.users)
+    .where(and(ne(s.users.status, 'pending'), ne(s.users.status, 'banned')));
+
+  const matched = candidates.find((user) => playerSlug(memberName(user), user.id) === wanted);
+  if (!matched) return c.json({ error: 'No such member' }, 404);
+  return c.json({ id: matched.id, publicSlug: playerSlug(memberName(matched), matched.id) });
+});
+
 members.get('/public/:id', async (c) => {
   const id = Number(c.req.param('id'));
   if (!Number.isInteger(id) || id <= 0) return c.json({ error: 'No such member' }, 404);
@@ -466,7 +487,11 @@ members.get('/public/:id', async (c) => {
       medals,
       warRecords,
       bio: profile?.bio ?? null,
+      publicSlug: playerSlug(memberName(user), user.id),
       steamId: quakeLink?.steamId ?? null,
+      steamLinked: !!quakeLink,
+      steamIdMasked: quakeLink ? `•••••••••••${quakeLink.steamId.slice(-6)}` : null,
+      steamProfileUrl: quakeLink ? `https://steamcommunity.com/profiles/${quakeLink.steamId}` : null,
       quakeName: quakeLink?.quakeName ?? null,
     },
   });
@@ -534,7 +559,22 @@ members.get('/:id', requireUser, async (c) => {
     database.query.quakePlayerLinks.findFirst({ where: eq(s.quakePlayerLinks.userId, id) }),
   ]);
 
-  return c.json({ member: { ...user, rank, roles, medals, warRecords, bio: profile?.bio ?? null, steamId: quakeLink?.steamId ?? null, quakeName: quakeLink?.quakeName ?? null } });
+  return c.json({
+    member: {
+      ...user,
+      rank,
+      roles,
+      medals,
+      warRecords,
+      bio: profile?.bio ?? null,
+      publicSlug: playerSlug(memberName(user), user.id),
+      steamId: quakeLink?.steamId ?? null,
+      steamLinked: !!quakeLink,
+      steamIdMasked: quakeLink ? `•••••••••••${quakeLink.steamId.slice(-6)}` : null,
+      steamProfileUrl: quakeLink ? `https://steamcommunity.com/profiles/${quakeLink.steamId}` : null,
+      quakeName: quakeLink?.quakeName ?? null,
+    },
+  });
 });
 
 /**
