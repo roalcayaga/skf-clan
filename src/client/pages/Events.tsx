@@ -12,6 +12,7 @@ import { X, MapPin, Gamepad2, Repeat2, Users } from 'lucide';
 import { api } from '../lib/api';
 import { useAction, Alerts } from '../lib/action';
 import { useSession } from '../lib/session';
+import { shareActivityWhatsApp } from '../lib/share';
 import Switch from '../components/Switch';
 import { selfCheckinOpen, type AttendanceMode } from '../../shared/attendance';
 
@@ -90,10 +91,10 @@ function whenLabel(startsAt: number, endsAt: number): string {
   return sameDay ? `${date} · ${t(start)} – ${t(end)}` : `${start.toLocaleString()} → ${end.toLocaleString()}`;
 }
 
-export default function Events() {
+export default function Events({ managementMode = false }: { managementMode?: boolean } = {}) {
   const { can } = useSession();
-  const canManage = can('events.manage');
-  const canSeeAttendees = can('events.attendees');
+  const canManage = managementMode && can('events.manage');
+  const canSeeAttendees = managementMode && can('events.attendees');
   const [events, setEvents] = useState<EventItem[]>([]);
   const [games, setGames] = useState<GameOption[]>([]);
   const [att, setAtt] = useState<{ mode: AttendanceMode; checkinWindowHours: number } | null>(null);
@@ -242,6 +243,23 @@ const signup = (
                   )}
                 </div>
                 {ev.description && <p className="event-desc">{ev.description}</p>}
+
+                <button
+                  type="button"
+                  className="share-whatsapp"
+                  onClick={() =>
+                    shareActivityWhatsApp({
+                      title: ev.title,
+                      startsAt: ev.startsAt,
+                      endsAt: ev.endsAt,
+                      location: ev.location,
+                      description: ev.description,
+                      path: '/events',
+                    })
+                  }
+                >
+                  Compartir por WhatsApp
+                </button>
 
                 <SignupControls
                   event={ev}
