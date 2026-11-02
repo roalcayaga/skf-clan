@@ -1,5 +1,5 @@
 /**
- * mustr service worker — a deliberately conservative first pass.
+ * SkF service worker — a deliberately conservative first pass.
  *
  * Goals: make the app installable and give it a usable offline shell without
  * ever risking a stale or broken UI.
@@ -12,7 +12,7 @@
  * Bump CACHE to invalidate everything on the next activate.
  */
 
-const CACHE = 'mustr-v1';
+const CACHE = 'skf-v2';
 const SHELL = '/index.html';
 
 self.addEventListener('install', (event) => {
