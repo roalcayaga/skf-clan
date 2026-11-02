@@ -37,9 +37,9 @@ function metric(label: string, value: number | null | undefined, suffix = '') {
   );
 }
 
-export default function MemberTrainingFocus({ memberId }: { memberId: number }) {
+export default function MemberTrainingFocus({ memberId, managementMode = false }: { memberId: number; managementMode?: boolean }) {
   const { viewer, can } = useSession();
-  const editable = viewer?.id === memberId || can('training.manage');
+  const editable = viewer?.id === memberId || (managementMode && can('training.manage'));
   const [impact, setImpact] = useState<Impact | null>(null);
   const [focus, setFocus] = useState('');
   const [target, setTarget] = useState('');
