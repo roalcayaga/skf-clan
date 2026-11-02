@@ -45,6 +45,7 @@ const CATEGORIES: Record<string, { prefix: string; permission?: Permission; maxB
   warrecords: { prefix: 'warrecords', permission: 'warrecords.manage' },
   events: { prefix: 'events', permission: 'events.manage' },
   pages: { prefix: 'pages', permission: 'pages.manage' },
+  history: { prefix: 'history', permission: 'pages.manage' },
   branding: { prefix: 'branding', permission: 'settings.manage' },
   gallery: { prefix: 'gallery', permission: 'gallery.manage', maxBytes: MAX_PHOTO_BYTES },
 };
