@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import '../competitive.css';
 import { useSession } from '../lib/session';
+import MatchRoomsTab from '../components/MatchRoomsTab';
 import type {
   CompetitiveMatchView,
   CompetitivePlayerSummary,
@@ -10,7 +11,7 @@ import type {
   CompetitiveWeaponSummary,
 } from '../../shared/competitive';
 
-type Tab = 'overview' | 'stats' | 'matches' | 'players' | 'public' | 'dojo';
+type Tab = 'overview' | 'stats' | 'matches' | 'players' | 'public' | 'wars' | 'dojo';
 type Availability = 'available' | 'tentative' | 'unavailable';
 type Recurrence = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly';
 
@@ -494,6 +495,7 @@ export default function Competitive() {
           ['matches', 'Partidas'],
           ['players', 'Guerreros'],
           ['public', 'Public Arena'],
+          ['wars', 'Match Room'],
           ['dojo', 'Dojo'],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
@@ -756,6 +758,8 @@ export default function Competitive() {
               </section>
             </div>
           )}
+
+          {tab === 'wars' && <MatchRoomsTab />}
 
           {tab === 'dojo' && (
             <div className="competitive-stack">

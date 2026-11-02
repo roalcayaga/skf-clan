@@ -981,6 +981,104 @@ export const pulseEvents = sqliteTable(
 );
 
 /* ------------------------------------------------------------------ *
+ * Match Room / Performance Lab
+ * ------------------------------------------------------------------ */
+
+export const rivals = sqliteTable(
+  'rivals',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    name: text('name').notNull().unique(),
+    tag: text('tag'),
+    notes: text('notes'),
+    createdAt: integer('created_at').notNull().default(now),
+    updatedAt: integer('updated_at').notNull().default(now),
+  },
+  (t) => [uniqueIndex('rivals_name_unique').on(t.name)],
+);
+
+export const matchRooms = sqliteTable(
+  'match_rooms',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    eventId: integer('event_id')
+      .notNull()
+      .unique()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    rivalId: integer('rival_id')
+      .notNull()
+      .references(() => rivals.id, { onDelete: 'restrict' }),
+    format: text('format').notNull().default('CA'),
+    mapPool: text('map_pool', { mode: 'json' }).$type<string[]>(),
+    status: text('status', { enum: ['scheduled', 'played', 'cancelled'] })
+      .notNull()
+      .default('scheduled'),
+    quakeMatchId: text('quake_match_id').references(() => quakeMatches.externalId, { onDelete: 'set null' }),
+    scoreUs: integer('score_us'),
+    scoreThem: integer('score_them'),
+    report: text('report'),
+    notes: text('notes'),
+    createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: integer('created_at').notNull().default(now),
+    updatedAt: integer('updated_at').notNull().default(now),
+  },
+  (t) => [
+    uniqueIndex('match_rooms_event_unique').on(t.eventId),
+    index('match_rooms_rival_idx').on(t.rivalId, t.status),
+    index('match_rooms_status_idx').on(t.status),
+  ],
+);
+
+export const matchRoomLineup = sqliteTable(
+  'match_room_lineup',
+  {
+    matchRoomId: integer('match_room_id')
+      .notNull()
+      .references(() => matchRooms.id, { onDelete: 'cascade' }),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    slot: text('slot', { enum: ['starter', 'sub', 'reserve'] }).notNull().default('starter'),
+    role: text('role'),
+    createdAt: integer('created_at').notNull().default(now),
+  },
+  (t) => [
+    primaryKey({ columns: [t.matchRoomId, t.userId] }),
+    index('match_room_lineup_user_idx').on(t.userId),
+  ],
+);
+
+export const matchRoomDemos = sqliteTable(
+  'match_room_demos',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    matchRoomId: integer('match_room_id')
+      .notNull()
+      .references(() => matchRooms.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    r2Key: text('r2_key').notNull(),
+    bytes: integer('bytes').notNull().default(0),
+    notes: text('notes'),
+    uploadedBy: integer('uploaded_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: integer('created_at').notNull().default(now),
+  },
+  (t) => [index('match_room_demos_room_idx').on(t.matchRoomId)],
+);
+
+export const trainingGoals = sqliteTable('training_goals', {
+  userId: integer('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  focus: text('focus'),
+  target: text('target'),
+  notes: text('notes'),
+  baseline: text('baseline', { mode: 'json' }).$type<Record<string, unknown>>(),
+  startedAt: integer('started_at').notNull().default(now),
+  updatedBy: integer('updated_by').references(() => users.id, { onDelete: 'set null' }),
+  updatedAt: integer('updated_at').notNull().default(now),
+});
+
+/* ------------------------------------------------------------------ *
  * Events — clan happenings (war nights, tournaments, movie nights).
  * Authorised members create them; the bot mirrors each to a native Discord
  * scheduled event AND an announcement message, tracked by the id columns so

@@ -361,3 +361,84 @@
   .quake-performance-grid { grid-template-columns: 1fr 1fr; }
   .pulse-warrior-stats { grid-template-columns: repeat(3,1fr); }
 }
+
+/* =========================
+   SkF — Dojo Performance Lab
+   ========================= */
+.training-focus-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.training-focus-head > div > span {
+  color: #00d9f5;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.training-focus-head h3 { margin: 2px 0 0; }
+.training-focus-editor {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+}
+.training-focus-editor label {
+  display: grid;
+  gap: 5px;
+  color: #819399;
+  font-size: 9px;
+  font-weight: 800;
+}
+.training-focus-editor > div { display: flex; flex-wrap: wrap; gap: 7px; }
+.training-focus-copy {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr .55fr;
+  gap: 7px;
+  margin-top: 12px;
+}
+.training-focus-copy > div {
+  padding: 10px;
+  border: 1px solid rgba(0,217,245,.1);
+  border-radius: 7px;
+}
+.training-focus-copy span,
+.training-impact span {
+  display: block;
+  color: #819399;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .07em;
+}
+.training-focus-copy strong {
+  display: block;
+  margin-top: 3px;
+  color: #f2f7f8;
+  font-size: 11px;
+}
+.training-focus-notes { color: #819399; font-size: 10px; line-height: 1.5; }
+.training-impact {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+.training-impact > div {
+  padding: 9px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 7px;
+  background: rgba(255,255,255,.018);
+}
+.training-impact strong {
+  display: block;
+  margin-top: 3px;
+  color: #f2f7f8;
+  font-size: 15px;
+}
+.training-impact strong.positive { color: #00d9f5; }
+.training-impact strong.negative { color: #ff6767; }
+@media (max-width: 700px) {
+  .training-focus-head { align-items: flex-start; flex-direction: column; }
+  .training-focus-copy { grid-template-columns: 1fr; }
+  .training-impact { grid-template-columns: repeat(2,1fr); }
+}

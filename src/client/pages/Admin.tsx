@@ -63,6 +63,7 @@ const WarRecords = lazy(() => import('./WarRecords'));
 const Announcements = lazy(() => import('./Announcements'));
 const IdentityAdmin = lazy(() => import('./IdentityAdmin'));
 const AnalyticsAdmin = lazy(() => import('./AnalyticsAdmin'));
+const PerformanceOSAdmin = lazy(() => import('./PerformanceOSAdmin'));
 const ModulesAdmin = lazy(() => import('./ModulesAdmin'));
 const Theme = lazy(() => import('./Theme'));
 const BrandingAdmin = lazy(() => import('./BrandingAdmin'));
@@ -106,6 +107,7 @@ const ITEM_ICONS: Record<string, typeof FileText> = {
   tournaments: Trophy,
   discord: Bot,
   analytics: Gauge,
+  'performance-os': Activity,
   alliance: Handshake,
   appearance: Palette,
   notifications: Bell,
@@ -135,6 +137,7 @@ const TAB_RENDERERS: Record<string, () => ReactNode> = {
   announcements: () => <Announcements />,
   identity: () => <IdentityAdmin />,
   analytics: () => <AnalyticsAdmin />,
+  performanceos: () => <PerformanceOSAdmin />,
   modules: () => <ModulesAdmin />,
   alliance: () => <AllianceAdmin />,
   theme: () => <Theme />,

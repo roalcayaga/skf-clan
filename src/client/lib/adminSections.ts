@@ -99,6 +99,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
         ],
       },
       { key: 'analytics', label: 'Analytics', tabs: [{ key: 'analytics', label: 'Analytics', permission: 'settings.manage' }] },
+      { key: 'performance-os', label: 'Performance OS', tabs: [{ key: 'performanceos', label: 'Performance OS', permission: 'settings.manage' }] },
       { key: 'modules', label: 'Modules', tabs: [{ key: 'modules', label: 'Modules', permission: 'settings.manage' }] },
       { key: 'alliance', label: 'Alliance', tabs: [{ key: 'alliance', label: 'Alliance', permission: 'alliance.manage' }] },
       {
