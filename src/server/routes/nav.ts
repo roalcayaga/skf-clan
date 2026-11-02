@@ -48,15 +48,20 @@ function normalizeSkfNav(config: NavConfig): NavConfig {
     );
   };
 
+  const isIntegratedIntoDojo = (item: NavConfig['items'][number]): boolean =>
+    item.type === 'link' &&
+    item.kind === 'builtin' &&
+    (item.target === 'events' || item.target === 'tournaments');
+
   const cleanItems = (items: NavConfig['items']): NavConfig['items'] =>
     items
-      .filter((item) => !isOldDashboard(item))
+      .filter((item) => !isOldDashboard(item) && !isIntegratedIntoDojo(item))
       .map((item) => {
         if (item.type === 'group') {
           return { ...item, children: cleanItems(item.children ?? []) };
         }
         if (item.kind === 'builtin' && item.target === 'competitive') {
-          return { ...item, label: 'Arena' };
+          return { ...item, label: 'Dojo' };
         }
         if (item.kind === 'builtin' && item.target === 'news') {
           return { ...item, label: 'Crónicas' };
@@ -87,25 +92,25 @@ function normalizeSkfNav(config: NavConfig): NavConfig {
     });
   }
 
-  const hasArena = (list: NavConfig['items']): boolean =>
+  const hasDojo = (list: NavConfig['items']): boolean =>
     list.some(
       (item) =>
         (item.type === 'link' && item.kind === 'builtin' && item.target === 'competitive') ||
-        (item.type === 'group' && hasArena(item.children ?? [])),
+        (item.type === 'group' && hasDojo(item.children ?? [])),
     );
-  if (hasArena(items)) return { ...config, items };
+  if (hasDojo(items)) return { ...config, items };
 
-  const eventsIndex = items.findIndex(
-    (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'events',
+  const rosterIndex = items.findIndex(
+    (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'roster',
   );
   const adminIndex = items.findIndex(
     (item) => item.type === 'link' && item.kind === 'builtin' && item.target === 'admin',
   );
-  const insertAt = eventsIndex >= 0 ? eventsIndex + 1 : adminIndex >= 0 ? adminIndex : items.length;
+  const insertAt = rosterIndex >= 0 ? rosterIndex : adminIndex >= 0 ? adminIndex : items.length;
   items.splice(insertAt, 0, {
-    id: 'skf-arena',
+    id: 'skf-dojo',
     type: 'link',
-    label: 'Arena',
+    label: 'Dojo',
     kind: 'builtin',
     target: 'competitive',
   });
