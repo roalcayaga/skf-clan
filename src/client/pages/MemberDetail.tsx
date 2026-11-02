@@ -539,7 +539,7 @@ export default function MemberDetail({
           </section>
 
           <MemberQuakePerformance memberId={member.id} linkedSteamId={member.steamId} />
-          <MemberTrainingFocus memberId={member.id} />
+          <MemberTrainingFocus memberId={member.id} managementMode={managementMode} />
 
           <section className="block">
             <h3>Medals</h3>
@@ -649,7 +649,7 @@ export default function MemberDetail({
 
           {(isSelf || can('training.view')) && (
             <div className="block">
-              <MemberTraining userId={member.id} isSelf={isSelf} />
+              <MemberTraining userId={member.id} isSelf={isSelf} managementMode={managementMode} />
             </div>
           )}
 
