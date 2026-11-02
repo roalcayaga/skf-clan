@@ -35,19 +35,19 @@ export default function NewsPost() {
     api
       .get<{ post: Post }>(`/news/${slug}`)
       .then(({ post }) => setPost(post))
-      .catch((e) => setError(e instanceof ApiError && e.status === 404 ? 'Post not found.' : 'Failed to load post.'))
+      .catch((e) => setError(e instanceof ApiError && e.status === 404 ? 'Crónica no encontrada.' : 'No se pudo cargar la crónica.'))
       .finally(() => setLoading(false));
   }, [slug]);
 
   useRecordRecent(post ? { group: 'content', label: post.title, to: `/news/${post.slug}` } : null);
 
-  if (loading) return <div className="loading">Loading…</div>;
+  if (loading) return <div className="loading">Cargando…</div>;
   if (error || !post) return <div className="empty">{error ?? 'Post not found.'}</div>;
 
   return (
     <section className="panel news-post">
       <Link className="back" to="/news">
-        ← News
+        ← Crónicas
       </Link>
 
       <header className="news-post-head">
