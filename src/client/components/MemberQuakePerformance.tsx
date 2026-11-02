@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import './home-pulse.css';
 
 interface SkfPlayer {
   name: string;
