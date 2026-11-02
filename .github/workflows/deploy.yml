@@ -44,6 +44,12 @@ jobs:
           npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT id,discord_id,username,global_name,display_name,status,rank_id,guild_joined_at,last_seen_at,last_reconciled_at,created_at,updated_at FROM users WHERE lower(username) LIKE '%hitokiri%' OR lower(global_name) LIKE '%hitokiri%' OR lower(display_name) LIKE '%hitokiri%';"
           echo "=== HITOKIRI AUDIT ==="
           npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT action,target_type,target_id,actor_id,source,created_at,meta FROM audit_log WHERE target_type='user' AND target_id IN (SELECT CAST(id AS TEXT) FROM users WHERE lower(username) LIKE '%hitokiri%' OR lower(global_name) LIKE '%hitokiri%' OR lower(display_name) LIKE '%hitokiri%') ORDER BY created_at DESC LIMIT 50;"
+          echo "=== BUDAH CURRENT USERS ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT id,discord_id,username,global_name,display_name,status,rank_id,profile_image_url,created_at,updated_at FROM users WHERE lower(username) LIKE '%budah%' OR lower(global_name) LIKE '%budah%' OR lower(display_name) LIKE '%budah%';"
+          echo "=== BUDAH LEGACY ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT id,name,profile_image_url,years_active,note,current_nick,owner_user_id,sort_order,rank_id,created_at,updated_at FROM legacy_members WHERE lower(name) LIKE '%budah%' OR lower(current_nick) LIKE '%budah%';"
+          echo "=== BUDAH MEDALS ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT 'current' AS source, um.user_id AS owner_id, m.id AS medal_id, m.name AS medal_name FROM user_medals um JOIN medals m ON m.id=um.medal_id WHERE um.user_id IN (SELECT id FROM users WHERE lower(username) LIKE '%budah%' OR lower(global_name) LIKE '%budah%' OR lower(display_name) LIKE '%budah%') UNION ALL SELECT 'legacy' AS source, lmm.legacy_member_id AS owner_id, lm.id AS medal_id, lm.name AS medal_name FROM legacy_member_medals lmm JOIN legacy_medals lm ON lm.id=lmm.legacy_medal_id WHERE lmm.legacy_member_id IN (SELECT id FROM legacy_members WHERE lower(name) LIKE '%budah%' OR lower(current_nick) LIKE '%budah%');"
 
 
       - name: Run tests
