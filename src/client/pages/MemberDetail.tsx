@@ -117,11 +117,19 @@ export default function MemberDetail({
   const [medalCatalog, setMedalCatalog] = useState<MedalDef[]>([]);
   const [warRecordCatalog, setWarRecordCatalog] = useState<WarRecordDef[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingProfile, setEditingProfile] = useState(false);
+
+  // Normal profile visits always read the sanitized public card. Admin management
+  // keeps the authenticated endpoint, and a pending applicant uses it for their
+  // own not-yet-public profile while completing the application.
+  const usePrivateMember =
+    managementMode || (!!viewer?.pending && viewer.id === memberId);
 
   const load = useCallback(async () => {
-    const { member } = await api.get<{ member: Member }>(`/members/${memberId}`);
+    const endpoint = usePrivateMember ? `/members/${memberId}` : `/members/public/${memberId}`;
+    const { member } = await api.get<{ member: Member }>(endpoint);
     setMember(member);
-  }, [memberId]);
+  }, [memberId, usePrivateMember]);
 
   const { run, busy, error, notice, warning, setError } = useAction(load);
 
@@ -166,6 +174,12 @@ export default function MemberDetail({
       .finally(() => setLoading(false));
   }, [load, can, setError, managementMode]);
 
+  useEffect(() => {
+    // Applicants must complete their profile before approval, so preserve that
+    // onboarding behavior. Everyone else lands in the same read-only public view.
+    setEditingProfile(!!viewer?.pending && viewer.id === memberId);
+  }, [viewer?.id, viewer?.pending, memberId]);
+
   useRecordRecent(member ? { group: 'people', label: memberName(member), to: `/members/${member.id}` } : null);
 
   if (loading) return <div className="loading">Loading member…</div>;
@@ -173,6 +187,9 @@ export default function MemberDetail({
 
   const isSelf = viewer?.id === member.id;
   const canEditProfile = isSelf || (managementMode && can('roster.edit'));
+  const profileEditorOpen =
+    canEditProfile &&
+    (editingProfile || (managementMode && can('roster.edit')) || (isSelf && !!viewer?.pending));
   const displayName = memberName(member);
   // The underlying Discord identity, shown when a display name overrides it.
   const discordHandle = member.globalName ?? member.username;
@@ -301,8 +318,8 @@ export default function MemberDetail({
           officer knows who you are. You’ll get full access once you’re approved.
         </div>
       ) : !embedded ? (
-        <button className="back" onClick={() => navigate('/roster')}>
-          ← Roster
+        <button className="back" onClick={() => navigate(viewer ? '/roster' : '/')}>
+          {viewer ? '← Roster' : '← Inicio'}
         </button>
       ) : null}
 
@@ -340,7 +357,7 @@ export default function MemberDetail({
         <SigilEmblem className="member-crest" />
         <AvatarBlock
           member={member}
-          canEdit={canEditProfile}
+          canEdit={profileEditorOpen}
           hasOverride={!!member.profileImageUrl}
           busy={busy}
           onSet={setProfileImage}
@@ -498,8 +515,15 @@ export default function MemberDetail({
 
       <div className="member-main">
           <section className="block">
-            <h3>Profile</h3>
-            {canEditProfile ? (
+            <div className="member-profile-heading">
+              <h3>Profile</h3>
+              {canEditProfile && !profileEditorOpen && (
+                <button className="mini" onClick={() => setEditingProfile(true)}>
+                  Editar perfil
+                </button>
+              )}
+            </div>
+            {profileEditorOpen ? (
               <ProfileEditor
                 displayName={member.displayName ?? ''}
                 bio={member.bio ?? ''}
@@ -523,6 +547,7 @@ export default function MemberDetail({
                       steamId?: string | null;
                     }>(`/members/${member.id}/profile`, payload);
 
+                    if (!managementMode) setEditingProfile(false);
                     if (res.discordSync?.warning) return { warning: res.discordSync.warning };
                     if (res.discordSync?.synced)
                       return 'Saved — the Discord nickname was updated to match.';
@@ -530,6 +555,7 @@ export default function MemberDetail({
                     return 'Profile saved.';
                   })
                 }
+                onCancel={() => setEditingProfile(false)}
               />
             ) : member.bio ? (
               <p className="bio">{member.bio}</p>
@@ -538,8 +564,10 @@ export default function MemberDetail({
             )}
           </section>
 
-          <MemberQuakePerformance memberId={member.id} linkedSteamId={member.steamId} />
-          <MemberTrainingFocus memberId={member.id} managementMode={managementMode} />
+          <MemberQuakePerformance memberId={member.id} />
+          {viewer && (isSelf || can('training.view')) && (
+            <MemberTrainingFocus memberId={member.id} managementMode={managementMode} />
+          )}
 
           <section className="block">
             <h3>Medals</h3>
@@ -645,7 +673,7 @@ export default function MemberDetail({
 
           {/* Renders itself only when the viewer may see this member's activity
               (self, a permitted role, or god) and the feature is on. */}
-          <MemberActivity userId={member.id} />
+          {viewer && <MemberActivity userId={member.id} />}
 
           {(isSelf || can('training.view')) && (
             <div className="block">
@@ -655,7 +683,7 @@ export default function MemberDetail({
 
           {/* Renders itself only when there is something to show: the member's own
               link controls, or someone else's followed characters. */}
-          {modules.wow && <WowCharacters userId={member.id} isSelf={isSelf} />}
+          {viewer && modules.wow && <WowCharacters userId={member.id} isSelf={isSelf} />}
 
           {modules.starcitizen && (sc.hangarEnabled || sc.verifyEnabled) && (isSelf || can('hangar.view')) && (
             <section className="block hangar-section">
@@ -861,6 +889,7 @@ function ProfileEditor({
   busy,
   isSelf,
   onSave,
+  onCancel,
 }: {
   displayName: string;
   bio: string;
@@ -868,6 +897,7 @@ function ProfileEditor({
   busy: boolean;
   isSelf: boolean;
   onSave: (v: { displayName: string; bio: string; steamId: string | null }) => void;
+  onCancel: () => void;
 }) {
   const [name, setName] = useState(displayName);
   const [text, setText] = useState(bio);
@@ -931,18 +961,9 @@ function ProfileEditor({
         >
           Save profile
         </button>
-        {dirty && (
-          <button
-            disabled={busy}
-            onClick={() => {
-              setName(displayName);
-              setText(bio);
-              setSteam(steamId);
-            }}
-          >
-            Cancel
-          </button>
-        )}
+        <button disabled={busy} onClick={onCancel}>
+          Cancel
+        </button>
       </div>
     </div>
   );
