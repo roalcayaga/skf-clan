@@ -9541,9 +9541,80 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
   color: var(--color-muted);
 }
 
+
+.temple-gates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 18%, var(--color-border));
+  border-radius: 12px;
+  background:
+    linear-gradient(110deg, color-mix(in srgb, #00d0ff 5%, transparent), transparent 42%),
+    linear-gradient(290deg, color-mix(in srgb, #ff2e2e 5%, transparent), transparent 36%),
+    var(--color-surface);
+}
+
+.temple-gates-copy {
+  min-width: 0;
+}
+
+.temple-gates h2 {
+  margin: 5px 0 4px;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.5vw, 1.55rem);
+}
+
+.temple-gates p {
+  margin: 0;
+}
+
+.temple-gates-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.temple-gates-actions .btn-cta {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.temple-gates-actions .btn-cta.primary {
+  border-color: var(--color-accent);
+}
+
+
 @media (max-width: 560px) {
   .public-home-hero {
     padding: 20px 16px;
+  }
+
+  .temple-gates {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .temple-gates-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .temple-gates-actions .btn-cta {
+    width: 100%;
   }
 
   .public-home-actions {
