@@ -909,3 +909,236 @@
     flex-wrap: wrap;
   }
 }
+
+/* =========================
+   SkF — Match Room / Rival Intel
+   ========================= */
+.match-room-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, .45fr);
+  gap: 18px;
+  align-items: start;
+}
+.match-room-main,
+.match-room-list {
+  display: grid;
+  gap: 10px;
+}
+.match-room-history-head { margin-top: 18px; }
+.match-room-card {
+  padding: 18px;
+  border: 1px solid rgba(0,217,245,.14);
+  border-radius: 11px;
+  background:
+    linear-gradient(135deg, rgba(0,217,245,.035), transparent 50%),
+    rgba(5,10,12,.72);
+}
+.match-room-card.is-played { border-color: rgba(255,42,42,.15); }
+.match-room-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.match-room-kicker {
+  color: #00d9f5;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+.match-room-card h3 {
+  margin: 4px 0 3px;
+  color: #f2f7f8;
+  font-size: 18px;
+}
+.match-room-card header small,
+.match-room-card .muted { color: #819399; }
+.match-room-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #819399;
+}
+.match-room-score strong { color: #f2f7f8; font-size: 28px; }
+.match-room-status {
+  padding: 5px 8px;
+  border: 1px solid rgba(0,217,245,.2);
+  border-radius: 999px;
+  color: #00d9f5;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.match-room-maps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.match-room-maps > span,
+.match-room-lineup > span,
+.match-room-demos > span,
+.match-room-report > span {
+  width: 100%;
+  color: #819399;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.match-room-maps b {
+  padding: 4px 7px;
+  border: 1px solid rgba(0,217,245,.14);
+  border-radius: 999px;
+  color: #dce8ea;
+  font-size: 9px;
+  font-weight: 700;
+}
+.match-room-rsvp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 13px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.match-room-rsvp > div { display: flex; gap: 5px; }
+.match-room-rsvp > div:first-child span {
+  font-size: 9px;
+  font-weight: 900;
+}
+.match-room-rsvp .available { color: #00d9f5; }
+.match-room-rsvp .tentative { color: #d5b83d; }
+.match-room-rsvp .unavailable { color: #ff6767; }
+.match-room-rsvp button,
+.match-room-lineup-add button,
+.match-room-manage button {
+  padding: 6px 8px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 6px;
+  background: rgba(255,255,255,.025);
+  color: #819399;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+}
+.match-room-rsvp button.active.available {
+  border-color: rgba(0,217,245,.4);
+  color: #00d9f5;
+}
+.match-room-rsvp button.active.tentative {
+  border-color: rgba(213,184,61,.4);
+  color: #d5b83d;
+}
+.match-room-rsvp button.active.unavailable {
+  border-color: rgba(255,42,42,.4);
+  color: #ff6767;
+}
+.match-room-lineup,
+.match-room-demos,
+.match-room-report {
+  margin-top: 13px;
+}
+.match-room-lineup-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+.match-room-lineup-list > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1px 8px;
+  min-width: 130px;
+  padding: 7px 9px;
+  border: 1px solid rgba(0,217,245,.12);
+  border-radius: 7px;
+}
+.match-room-lineup-list b { color: #f2f7f8; font-size: 10px; }
+.match-room-lineup-list small { color: #819399; font-size: 8px; }
+.match-room-lineup-list button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  border: 0;
+  background: transparent;
+  color: #ff6767;
+  cursor: pointer;
+}
+.match-room-lineup-add,
+.match-room-manage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.match-room-lineup-add select,
+.match-room-manage input,
+.match-room-manage textarea {
+  min-width: 0;
+  font-size: 10px;
+}
+.match-room-report {
+  padding: 10px;
+  border-left: 2px solid #ff2a2a;
+  background: rgba(255,42,42,.025);
+}
+.match-room-report p { margin: 5px 0 0; color: #c7d2d5; font-size: 10px; line-height: 1.5; }
+.match-room-demos ul {
+  display: grid;
+  gap: 4px;
+  margin: 7px 0;
+  padding: 0;
+  list-style: none;
+}
+.match-room-demos li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 9px;
+}
+.match-room-demos a { color: #00d9f5; }
+.match-room-demos small { color: #819399; }
+.match-room-upload {
+  display: inline-block;
+  color: #00d9f5;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 800;
+}
+.match-room-upload input { display: none; }
+.match-room-manage {
+  align-items: center;
+  margin-top: 13px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255,255,255,.08);
+}
+.match-room-manage input { width: 58px; }
+.match-room-manage textarea { flex: 1 1 220px; }
+.match-room-manage button.primary { color: #041013; }
+.match-room-notice { margin: 8px 0 0; color: #00d9f5; font-size: 9px; }
+.rival-intel { position: sticky; top: 80px; }
+.rival-intel-list { display: grid; gap: 8px; }
+.rival-intel-list > div {
+  padding: 9px 0;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.rival-intel-list > div > span {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.rival-intel-list strong { color: #f2f7f8; font-size: 11px; }
+.rival-intel-list b { display: block; margin-top: 3px; color: #00d9f5; font-size: 10px; }
+.rival-intel-list small { color: #819399; font-size: 8px; }
+.rival-intel-list p { margin: 5px 0 0; color: #819399; font-size: 9px; line-height: 1.4; }
+@media (max-width: 900px) {
+  .match-room-layout { grid-template-columns: 1fr; }
+  .rival-intel { position: static; }
+}
+@media (max-width: 650px) {
+  .match-room-card > header,
+  .match-room-rsvp { align-items: flex-start; flex-direction: column; }
+  .match-room-rsvp > div:last-child { flex-wrap: wrap; }
+}
