@@ -82,6 +82,9 @@ const AllianceAdmin = lazy(() => import('./AllianceAdmin'));
 const ApplicantsAdmin = lazy(() => import('./ApplicantsAdmin'));
 const BansAdmin = lazy(() => import('./BansAdmin'));
 const TrainingAdmin = lazy(() => import('./TrainingAdmin'));
+const MembersAdmin = lazy(() => import('./MembersAdmin'));
+const Competitive = lazy(() => import('./Competitive'));
+const Events = lazy(() => import('./Events'));
 const MustrGgAdmin = lazy(() => import('./MustrGgAdmin'));
 const AdminMenuAdmin = lazy(() => import('./AdminMenuAdmin'));
 const NotificationsAdmin = lazy(() => import('./NotificationsAdmin'));
@@ -101,6 +104,8 @@ const ITEM_ICONS: Record<string, typeof FileText> = {
   history: History,
   gallery: Images,
   training: GraduationCap,
+  members: Users,
+  'dojo-ops': Trophy,
   admissions: UserPlus,
   'ranks-roles': Users,
   'medals-records': Award,
@@ -127,6 +132,9 @@ const TAB_RENDERERS: Record<string, () => ReactNode> = {
   history: () => <HistoryAdmin />,
   gallery: () => <GalleryAdmin />,
   training: () => <TrainingAdmin />,
+  members: () => <MembersAdmin />,
+  dojoops: () => <Competitive managementMode />,
+  eventsops: () => <Events managementMode />,
   applicants: () => <ApplicantsAdmin />,
   bans: () => <BansAdmin />,
   ranks: () => <Ranks />,
