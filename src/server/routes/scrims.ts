@@ -7,6 +7,25 @@ import { emitNotification } from '../notifications';
 
 const scrims = new Hono<AppContext>();
 
+interface PublicScrimBody {
+  clanName?: string;
+  contactName?: string;
+  contactDiscord?: string;
+  contactEmail?: string;
+  mode?: string;
+  teamSize?: string;
+  preferredAt?: number;
+  alternateAt?: number | null;
+  timezone?: string;
+  notes?: string;
+  website?: string;
+}
+
+interface ScrimPatchBody {
+  status?: string;
+  eventId?: number | null;
+}
+
 const MODES = new Set(['CA', 'CTF', 'TDM', 'DUEL', 'OTHER']);
 const STATUSES = new Set(['pending', 'contacted', 'scheduled', 'declined']);
 
@@ -16,19 +35,7 @@ function clean(value: unknown, max: number): string {
 
 /** Public challenge form. No account required: rival clans need a door in. */
 scrims.post('/', async (c) => {
-  const body = await c.req.json<{
-    clanName?: string;
-    contactName?: string;
-    contactDiscord?: string;
-    contactEmail?: string;
-    mode?: string;
-    teamSize?: string;
-    preferredAt?: number;
-    alternateAt?: number | null;
-    timezone?: string;
-    notes?: string;
-    website?: string; // honeypot — humans never see/fill this
-  }>().catch(() => ({}));
+  const body: PublicScrimBody = await c.req.json<PublicScrimBody>().catch(() => ({} as PublicScrimBody));
 
   if (clean(body.website, 200)) return c.json({ ok: true }, 202);
 
@@ -110,7 +117,7 @@ scrims.patch('/:id', requirePermission('events.manage'), async (c) => {
   const id = Number(c.req.param('id'));
   if (!Number.isInteger(id) || id <= 0) return c.json({ error: 'Invalid request.' }, 400);
 
-  const body = await c.req.json<{ status?: string; eventId?: number | null }>().catch(() => ({}));
+  const body: ScrimPatchBody = await c.req.json<ScrimPatchBody>().catch(() => ({} as ScrimPatchBody));
   const patch: Partial<typeof s.scrimRequests.$inferInsert> = {
     updatedAt: Math.floor(Date.now() / 1000),
   };
