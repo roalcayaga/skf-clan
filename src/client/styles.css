@@ -925,6 +925,22 @@ button.active {
   gap: 1.25rem;
 }
 
+.member-profile-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.member-profile-heading h3 {
+  margin: 0;
+}
+
+.member-profile-heading .mini {
+  flex: 0 0 auto;
+}
+
 .block h3,
 .member-admin h3 {
   margin: 0 0 0.5rem;
