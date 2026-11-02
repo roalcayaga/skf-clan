@@ -9671,3 +9671,263 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
     min-height: 40px;
   }
 }
+
+
+/* ------------------------------------------------------------------ *
+ * SkF public recruitment + scrim challenge
+ * ------------------------------------------------------------------ */
+
+.public-action-page {
+  width: min(900px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.public-action-hero {
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border: 1px solid rgba(0, 217, 245, 0.14);
+  border-radius: var(--surface-radius);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 42, 42, 0.08), transparent 34%),
+    radial-gradient(circle at 0% 100%, rgba(0, 217, 245, 0.08), transparent 38%),
+    var(--surface-bg);
+}
+
+.public-action-hero h1,
+.public-action-card h1 {
+  margin: 0.2rem 0 0.6rem;
+  font-family: var(--font-display);
+}
+
+.public-action-hero p,
+.public-action-card > p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.public-action-kicker,
+.scrim-admin-kicker {
+  color: #00d9f5;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.public-action-card {
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: var(--surface-border);
+  border-radius: var(--surface-radius);
+  background: var(--surface-bg);
+  box-shadow: var(--surface-shadow);
+}
+
+.public-action-card.success {
+  border-color: rgba(0, 217, 245, 0.24);
+}
+
+.public-action-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.public-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.public-action-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.public-action-form input,
+.public-action-form select,
+.public-action-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.public-action-form input:focus,
+.public-action-form select:focus,
+.public-action-form textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.public-action-wide {
+  grid-column: 1 / -1;
+}
+
+.public-action-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.public-action-meta {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.scrim-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+.join-card {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.join-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+}
+
+.join-steps > div {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 110px;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.join-steps b {
+  color: #ff5b5b;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.join-steps span {
+  color: var(--color-text);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+/* Scrim admin queue ------------------------------------------------ */
+
+.scrim-admin-list {
+  list-style: none;
+  display: grid;
+  gap: 0.85rem;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.scrim-admin-card {
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--surface-radius);
+  background: var(--surface-bg);
+}
+
+.scrim-admin-card.status-pending {
+  border-color: rgba(0, 217, 245, 0.2);
+}
+
+.scrim-admin-card.status-scheduled {
+  border-color: rgba(0, 217, 245, 0.34);
+}
+
+.scrim-admin-card.status-declined {
+  opacity: 0.68;
+}
+
+.scrim-admin-head,
+.scrim-admin-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.scrim-admin-head h3 {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-display);
+}
+
+.scrim-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+.scrim-admin-grid > div {
+  padding: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius);
+}
+
+.scrim-admin-grid span,
+.scrim-admin-grid small {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.scrim-admin-grid strong {
+  display: block;
+  margin: 0.2rem 0;
+  font-size: 0.85rem;
+}
+
+.scrim-admin-notes {
+  margin: 0.8rem 0 0;
+  padding: 0.7rem;
+  border-left: 2px solid #ff2a2a;
+  color: var(--color-muted);
+  white-space: pre-wrap;
+}
+
+.scrim-admin-actions {
+  justify-content: flex-start;
+  margin-top: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .public-action-grid,
+  .scrim-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .join-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .public-action-actions .btn-cta,
+  .public-action-actions .discord-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 460px) {
+  .join-steps {
+    grid-template-columns: 1fr;
+  }
+}
