@@ -77,7 +77,7 @@ competitive.get('/public', requireAuth, async (c) => {
         kills: row.kills,
         deaths: row.deaths,
         kd: row.kd,
-        winRate: row.totalGames ? Math.round((row.wins / row.totalGames) * 1000) / 10 : 0,
+        winRate: row.totalGames ? Math.round(((row.wins ?? 0) / row.totalGames) * 1000) / 10 : 0,
         capturedAt: row.capturedAt,
       });
     }
