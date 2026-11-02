@@ -206,6 +206,22 @@ export async function buildPulseHome(
           .limit(1)
           .offset(offset)
       )[0] ?? null;
+
+    if (legacy?.currentNick && !legacy.ownerUserId) {
+      const owner =
+        (
+          await database
+            .select({ id: s.users.id })
+            .from(s.users)
+            .where(
+              sql`lower(${s.users.displayName}) = lower(${legacy.currentNick})
+                OR lower(${s.users.globalName}) = lower(${legacy.currentNick})
+                OR lower(${s.users.username}) = lower(${legacy.currentNick})`,
+            )
+            .limit(1)
+        )[0] ?? null;
+      if (owner) legacy = { ...legacy, ownerUserId: owner.id };
+    }
   }
 
   let personal = null;
