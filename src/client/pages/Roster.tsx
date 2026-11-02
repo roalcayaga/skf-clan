@@ -40,6 +40,10 @@ interface LegacyMember {
   profileImageUrl: string | null;
   yearsActive: string | null;
   note: string | null;
+  currentNick: string | null;
+  ownerUserId: number | null;
+  ownerStatus: string | null;
+  ownerDisplayName: string | null;
   sortOrder: number;
   rankName: string | null;
   medals: Array<{
@@ -300,6 +304,14 @@ const [total, setTotal] = useState(0);
                 <span className="skf-legacy-status">
                   Miembro histórico
                 </span>
+
+                {m.currentNick && (
+                  <span className="skf-legacy-current">
+                    {m.currentNick.toLowerCase() === m.name.toLowerCase()
+                      ? 'Activo actualmente'
+                      : `Hoy: ${m.currentNick}`}
+                  </span>
+                )}
               </div>
 
               {m.medals.length > 0 && (
@@ -328,6 +340,12 @@ const [total, setTotal] = useState(0);
                 <div className="skf-legacy-note">
                   {m.note}
                 </div>
+              )}
+
+              {m.ownerUserId && (
+                <Link className="skf-legacy-owner-link" to={`/members/${m.ownerUserId}`}>
+                  Ver perfil actual{m.ownerDisplayName ? ` · ${m.ownerDisplayName}` : ''} →
+                </Link>
               )}
             </div>
           </div>
