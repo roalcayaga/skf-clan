@@ -96,19 +96,6 @@ interface PulseData {
   } | null;
 }
 
-interface ServerPayload {
-  online: boolean;
-  server?: {
-    map?: string;
-    gametype?: string;
-    players?: number;
-    max_players?: number;
-    roster?: { name: string; kind?: string; score?: number; ping_ms?: number }[];
-    match?: { red_score?: number | null; blue_score?: number | null; clock?: string | null } | null;
-    connect?: { address?: string; url?: string | null };
-  };
-}
-
 function stripDojo(title: string): string {
   return title.replace(/^DOJO\s*[·:-]\s*/i, '').trim();
 }
@@ -140,7 +127,6 @@ function shareWhatsApp(title: string, body: string, path: string) {
 export default function HomePulse() {
   const { viewer } = useSession();
   const [pulse, setPulse] = useState<PulseData | null>(null);
-  const [server, setServer] = useState<ServerPayload | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -152,29 +138,16 @@ export default function HomePulse() {
         // Keep the rest of Home usable if Pulse is temporarily unavailable.
       }
     };
-    const loadServer = async () => {
-      try {
-        const data = await api.get<ServerPayload>('/skf/server-status');
-        if (active) setServer(data);
-      } catch {
-        if (active) setServer({ online: false });
-      }
-    };
     void loadPulse();
-    void loadServer();
     const pulseTimer = window.setInterval(loadPulse, 60_000);
-    const serverTimer = window.setInterval(loadServer, 30_000);
     return () => {
       active = false;
       window.clearInterval(pulseTimer);
-      window.clearInterval(serverTimer);
     };
   }, []);
 
-  if (!pulse && !server) return null;
+  if (!pulse) return null;
 
-  const activePlayers =
-    server?.server?.roster?.filter((p) => p.kind === 'player' || !p.kind).sort((a, b) => (b.score ?? 0) - (a.score ?? 0)) ?? [];
   const ca = pulse?.personal?.public.find((m) => m.gameType === 'CA') ?? pulse?.personal?.public[0] ?? null;
   const rail = pulse?.personal?.skf?.weapons.find((w) => w.weapon === 'RG')?.accuracy ?? null;
 
@@ -185,46 +158,8 @@ export default function HomePulse() {
           <span>SKF PULSE</span>
           <h2>Qué está pasando en el Templo</h2>
         </div>
-        <Link to="/competitive">Competitive Hub →</Link>
+        <Link to="/competitive">SkF Arena →</Link>
       </header>
-
-      <div className="pulse-now">
-        <div className="pulse-now-copy">
-          <span className={'pulse-live-dot ' + (server?.online ? 'online' : 'offline')} />
-          <div>
-            <small>AHORA</small>
-            <strong>
-              {server?.online
-                ? activePlayers.length
-                  ? activePlayers.length + ' guerreros en el Templo'
-                  : 'El servidor está online'
-                : 'El Templo está en silencio'}
-            </strong>
-            <span>
-              {server?.online
-                ? (server.server?.map || 'mapa desconocido') + ' · ' + (server.server?.gametype || 'Quake Live')
-                : pulse?.nextDojo
-                  ? 'Próximo Dojo: ' + fmtDateTime(pulse.nextDojo.startsAt)
-                  : 'Sin actividad en vivo'}
-            </span>
-          </div>
-        </div>
-        {server?.online && activePlayers.length > 0 && (
-          <div className="pulse-live-players">
-            {activePlayers.slice(0, 6).map((p, i) => (
-              <span key={p.name + i}>
-                <strong>{p.name}</strong>
-                {p.score != null && <small>{p.score} pts</small>}
-              </span>
-            ))}
-          </div>
-        )}
-        {server?.online && (
-          <a className="pulse-connect" href={server.server?.connect?.url || 'steam://connect/161.153.199.38:27990'}>
-            Entrar al server
-          </a>
-        )}
-      </div>
 
       <div className="pulse-grid">
         <article className="pulse-card pulse-yesterday">
