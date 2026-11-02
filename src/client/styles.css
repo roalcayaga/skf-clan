@@ -3217,8 +3217,24 @@ input[aria-invalid='true'] {
   font-weight: 600;
 }
 
-.roster-mini-item .small {
+.roster-mini-meta {
   margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}
+
+.roster-mini-item .small {
+  margin-left: 0;
+}
+
+.roster-mini-elo {
+  color: var(--color-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 /* Events mini-module */
@@ -8636,9 +8652,61 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
   font-size: 11px;
 }
 
+.skf-roster-stats {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(68px, 1fr));
+  gap: 4px;
+  margin-left: auto;
+}
+
+.skf-roster-stat {
+  min-width: 68px;
+  padding: 5px 9px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.skf-roster-stat span {
+  display: block;
+  color: #819399;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.skf-roster-stat strong {
+  display: block;
+  margin-top: 1px;
+  color: #f2f7f8;
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.skf-roster-stat:first-child strong {
+  color: #00d9f5;
+}
+
+.skf-roster-stat small {
+  display: block;
+  margin-top: 2px;
+  color: #819399;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.skf-roster-no-stats {
+  margin-left: auto;
+  color: #819399;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
 @media (max-width: 700px) {
   .skf-roster-link {
     min-height: 66px;
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   .skf-roster-avatar {
@@ -8650,6 +8718,24 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
     align-items: flex-start;
     flex-direction: column;
     gap: 5px;
+  }
+
+  .skf-roster-stats {
+    flex: 1 1 100%;
+    width: 100%;
+    margin: 2px 0 0;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .skf-roster-stat {
+    min-width: 0;
+    padding: 5px 4px;
+  }
+
+  .skf-roster-no-stats {
+    flex: 1 1 100%;
+    margin: 2px 0 0;
+    padding-left: 54px;
   }
 }
 /* =========================
