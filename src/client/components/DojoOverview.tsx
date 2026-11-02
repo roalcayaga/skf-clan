@@ -63,6 +63,17 @@ function dayLabel(date: Date): string {
   return new Intl.DateTimeFormat('es-CL', { weekday: 'short' }).format(date);
 }
 
+function mobileDayLabel(date: Date): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const delta = Math.round((target.getTime() - today.getTime()) / 86_400_000);
+  if (delta === 0) return 'HOY';
+  if (delta === 1) return 'MAÑANA';
+  return new Intl.DateTimeFormat('es-CL', { weekday: 'long' }).format(date).toUpperCase();
+}
+
 function monthDay(date: Date): string {
   return new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short' }).format(date);
 }
@@ -223,9 +234,13 @@ export default function DojoOverview({
         ) : (
           <div className="dojo-master-week">
             {days.map(({ date, events, tournaments: dayTournaments }) => (
-              <div className="dojo-master-day" key={date.toISOString()}>
+              <div
+                className={'dojo-master-day' + (events.length || dayTournaments.length ? ' has-activity' : ' is-empty')}
+                key={date.toISOString()}
+              >
                 <header>
-                  <span>{dayLabel(date)}</span>
+                  <span className="dojo-day-desktop">{dayLabel(date)}</span>
+                  <span className="dojo-day-mobile">{mobileDayLabel(date)}</span>
                   <strong>{date.getDate()}</strong>
                 </header>
                 <div>
@@ -257,7 +272,7 @@ export default function DojoOverview({
                       <small>{t.entrantCount} {t.competitorType === 'team' ? 'equipos' : 'participantes'}</small>
                     </Link>
                   ))}
-                  {!events.length && !dayTournaments.length && <i>—</i>}
+                  {!events.length && !dayTournaments.length && <i>Sin actividad</i>}
                 </div>
               </div>
             ))}

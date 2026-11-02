@@ -13,6 +13,10 @@ svg {
   vertical-align: -0.125em;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   background: var(--color-bg);
@@ -8948,5 +8952,260 @@ a.button.primary { background: var(--color-accent); color: var(--color-accent-te
   }
   .chronicle-feature {
     padding: 20px;
+  }
+}
+
+
+/* =========================
+   SkF — Mobile usability pass
+   ========================= */
+
+.org-mobile-tree {
+  display: none;
+}
+
+.bracket-mobile-hint {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    gap: 0.65rem;
+    padding-top: max(0.55rem, env(safe-area-inset-top));
+    padding-right: max(0.85rem, env(safe-area-inset-right));
+    padding-bottom: 0.55rem;
+    padding-left: max(0.85rem, env(safe-area-inset-left));
+  }
+
+  .content {
+    padding-top: 1rem;
+    padding-right: max(14px, env(safe-area-inset-right));
+    padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+    padding-left: max(14px, env(safe-area-inset-left));
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  .upload-btn {
+    touch-action: manipulation;
+  }
+
+  .panel {
+    padding: 1rem;
+  }
+
+  .nav-toggle {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .nav {
+    margin-top: 0.35rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .nav a,
+  .nav-cat-trigger {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .account-trigger {
+    min-height: 44px;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .account-dropdown {
+    width: min(260px, calc(100vw - 28px));
+  }
+
+  .account-dropdown .menu-item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .roster-sort .seg,
+  .seg-control .seg,
+  .admin-tab,
+  .admin-nav-toggle,
+  .site-link,
+  .upload-btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .roster-sort {
+    gap: 0.5rem;
+  }
+
+  .roster-count {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  /* Public hierarchy becomes a vertical tree instead of a pan/zoom canvas. */
+  .org-mobile-tree {
+    display: block;
+  }
+
+  .org-mobile-tree + .org-scroll {
+    display: none;
+  }
+
+  .org-mobile-tree > ul,
+  .org-mobile-tree ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .org-mobile-tree ul ul {
+    margin-left: 22px;
+    padding-left: 14px;
+    border-left: 1px solid color-mix(in srgb, var(--color-accent) 28%, var(--color-border));
+  }
+
+  .org-mobile-tree li {
+    position: relative;
+    margin: 7px 0;
+  }
+
+  .org-mobile-tree ul ul > li::before {
+    position: absolute;
+    top: 25px;
+    left: -14px;
+    width: 12px;
+    height: 1px;
+    background: color-mix(in srgb, var(--color-accent) 28%, var(--color-border));
+    content: "";
+  }
+
+  .org-mobile-person {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 54px;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 9px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  a.org-mobile-person:active {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  }
+
+  .org-mobile-avatar {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .org-mobile-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .org-mobile-copy strong {
+    overflow: hidden;
+    color: var(--color-text);
+    font-size: 0.95rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .org-mobile-copy span {
+    color: var(--color-muted);
+    font-size: 0.76rem;
+  }
+
+  /* Tournament brackets remain complete but snap cleanly round-by-round. */
+  .bracket-scroll {
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bracket {
+    gap: 14px;
+  }
+
+  .bracket-col {
+    min-width: min(82vw, 300px);
+    scroll-snap-align: start;
+    scroll-margin-left: 1rem;
+  }
+
+  .bracket-mobile-hint {
+    display: block;
+    position: sticky;
+    left: 0;
+    width: max-content;
+    margin: 0 0 8px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+    color: var(--color-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .bracket-report,
+  .bracket-report-actions button,
+  .entrant-team-toggle,
+  .entrant-remove {
+    min-height: 40px;
+  }
+
+  .entrant-row {
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 560px) {
+  .account {
+    gap: 0.35rem;
+  }
+
+  .account-name,
+  .account-trigger .rank-chip,
+  .account-trigger .pending-chip,
+  .account-trigger .god-chip {
+    display: none;
+  }
+
+  .account-trigger {
+    gap: 0.2rem;
+    padding-inline: 0.3rem;
+  }
+
+  .account-trigger .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .panel {
+    padding: 0.85rem;
+  }
+
+  .chronicle-feature {
+    margin-inline: -2px;
   }
 }

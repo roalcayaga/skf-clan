@@ -59,8 +59,57 @@ export default function OrgChartView({
   const { width, height } = chartSize(nodes);
   const nodeById = new Map(nodes.map((n) => [n.memberId, n]));
 
+  const nodeIds = new Set(nodes.map((n) => n.memberId));
+  const children = new Map<number, number[]>();
+  const incoming = new Set<number>();
+  for (const edge of chart.edges) {
+    if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to)) continue;
+    const list = children.get(edge.from) ?? [];
+    list.push(edge.to);
+    children.set(edge.from, list);
+    incoming.add(edge.to);
+  }
+  const roots = nodes.map((n) => n.memberId).filter((id) => !incoming.has(id));
+  if (!roots.length) roots.push(nodes[0]!.memberId);
+
+  const renderMobileNode = (memberId: number, ancestry: Set<number>) => {
+    const member = byId.get(memberId);
+    if (!member || ancestry.has(memberId)) return null;
+    const next = new Set(ancestry);
+    next.add(memberId);
+    const childIds = children.get(memberId) ?? [];
+    const inner = (
+      <>
+        <img className="org-mobile-avatar" src={memberAvatar(member, 64)} alt="" />
+        <div className="org-mobile-copy">
+          <strong>{memberName(member)}</strong>
+          {member.rankName && <span>{member.rankName}</span>}
+        </div>
+      </>
+    );
+
+    return (
+      <li key={memberId}>
+        {linkMembers ? (
+          <Link to={`/members/${memberId}`} className="org-mobile-person">
+            {inner}
+          </Link>
+        ) : (
+          <div className="org-mobile-person">{inner}</div>
+        )}
+        {childIds.length > 0 && (
+          <ul>{childIds.map((id) => renderMobileNode(id, next))}</ul>
+        )}
+      </li>
+    );
+  };
+
   return (
-    <div className="org-scroll">
+    <>
+      <div className="org-mobile-tree" aria-label="Jerarquía del clan">
+        <ul>{roots.map((id) => renderMobileNode(id, new Set()))}</ul>
+      </div>
+      <div className="org-scroll">
       <div className="org-canvas" style={{ width, height }}>
         <svg className="org-edges" width={width} height={height} aria-hidden>
           {chart.edges.map((e, i) => {
@@ -101,5 +150,6 @@ export default function OrgChartView({
         })}
       </div>
     </div>
+    </>
   );
 }

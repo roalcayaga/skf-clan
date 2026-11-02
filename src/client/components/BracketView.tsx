@@ -36,6 +36,7 @@ export default function BracketView({ matches, entrants, canManage, bestOf, onRe
     const gTotal = Math.max(...group.map((m) => m.round));
     return (
       <div className="bracket-scroll">
+        <div className="bracket-mobile-hint">Desliza para avanzar de ronda →</div>
         <RoundColumns matches={group} totalRounds={gTotal} nameRound={(r) => `Round ${r}`} {...shared} />
       </div>
     );
@@ -49,6 +50,7 @@ export default function BracketView({ matches, entrants, canManage, bestOf, onRe
 
   return (
     <div className="bracket-scroll">
+      <div className="bracket-mobile-hint">Desliza para avanzar de ronda →</div>
       {hasLosers && <div className="bracket-section-label">Winners bracket</div>}
       <RoundColumns matches={winners} totalRounds={wbTotal} nameRound={(r) => roundName(r, wbTotal)} allowThirdPlace {...shared} />
 
