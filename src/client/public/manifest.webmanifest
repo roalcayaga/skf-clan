@@ -1,37 +1,21 @@
 {
-  "name": "mustr",
-  "short_name": "mustr",
-  "description": "Clan management — roster, ranks, events, and more.",
+  "id": "/",
+  "name": "Shaolin Kung Fu · SkF",
+  "short_name": "SkF",
+  "description": "El Templo digital de Shaolin Kung Fu: Dojo, roster, crónicas e historia.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0f1115",
-  "theme_color": "#0f1115",
+  "background_color": "#070c0e",
+  "theme_color": "#070c0e",
+  "categories": ["games", "sports", "social"],
   "icons": [
-    {
-      "src": "/icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
-    },
     {
       "src": "/icon.svg",
       "type": "image/svg+xml",
       "sizes": "any",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
