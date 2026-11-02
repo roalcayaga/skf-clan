@@ -37,6 +37,19 @@ jobs:
       - name: Build and typecheck
         run: npm run build
 
+      - name: Diagnose Safe Browsing candidates
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'diag/safebrowsing-skf' && env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          echo "=== RECENT PAGE CHANGES ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT slug,title,is_public,show_in_nav,updated_at,updated_by FROM page_layouts ORDER BY updated_at DESC;"
+          echo "=== PAGE LAYOUTS WITH EXTERNAL URLS ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT slug,title,updated_at,updated_by,layout FROM page_layouts WHERE CAST(layout AS TEXT) LIKE '%http://%' OR CAST(layout AS TEXT) LIKE '%https://%' ORDER BY updated_at DESC;"
+          echo "=== PAGE LAYOUTS WITH SUSPICIOUS TOKENS ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT slug,title,updated_at,updated_by,layout FROM page_layouts WHERE lower(CAST(layout AS TEXT)) LIKE '%javascript:%' OR lower(CAST(layout AS TEXT)) LIKE '%<script%' OR lower(CAST(layout AS TEXT)) LIKE '%iframe%' OR lower(CAST(layout AS TEXT)) LIKE '%onerror=%' OR lower(CAST(layout AS TEXT)) LIKE '%onclick=%' ORDER BY updated_at DESC;"
+          echo "=== RECENT PAGE AUDIT ==="
+          npx wrangler d1 execute skf-mustr --remote -c wrangler.jsonc --json --command "SELECT action,target_id,actor_id,created_at,meta FROM audit_log WHERE target_type='page' ORDER BY created_at DESC LIMIT 40;"
+
+
       - name: Run tests
         run: npm test
 
