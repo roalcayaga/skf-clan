@@ -10,6 +10,7 @@ import { Navigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useSession } from '../lib/session';
 import PageRenderer from '../components/PageRenderer';
+import HomePulse from '../components/HomePulse';
 import { defaultLayout, sanitizeLayout, type PageLayout } from '../../shared/layout';
 
 export default function Home() {
@@ -27,5 +28,5 @@ export default function Home() {
   // A logged-out visitor may only see the home page when it's marked public.
   // (PageRenderer still hides members-only and role-only modules from them.)
   if (!viewer && !state.isPublic) return <Navigate to="/login" replace />;
-  return <PageRenderer layout={state.layout} />;
+  return <><HomePulse /><PageRenderer layout={state.layout} /></>;
 }
