@@ -1112,6 +1112,41 @@ export const trainingGoals = sqliteTable('training_goals', {
 });
 
 /* ------------------------------------------------------------------ *
+ * Public scrim / PCW requests.
+ *
+ * External clans can challenge this clan without creating an account. Officers
+ * review the request in Admin and may convert it into a normal Event, which then
+ * uses the existing calendar + Discord event sync pipeline.
+ * ------------------------------------------------------------------ */
+
+export const scrimRequests = sqliteTable(
+  'scrim_requests',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    clanName: text('clan_name').notNull(),
+    contactName: text('contact_name').notNull(),
+    contactDiscord: text('contact_discord').notNull(),
+    contactEmail: text('contact_email'),
+    mode: text('mode').notNull().default('CA'),
+    teamSize: text('team_size').notNull().default('4v4'),
+    preferredAt: integer('preferred_at').notNull(),
+    alternateAt: integer('alternate_at'),
+    timezone: text('timezone').notNull().default('UTC'),
+    notes: text('notes'),
+    status: text('status', { enum: ['pending', 'contacted', 'scheduled', 'declined'] })
+      .notNull()
+      .default('pending'),
+    eventId: integer('event_id').references(() => events.id, { onDelete: 'set null' }),
+    createdAt: integer('created_at').notNull().default(now),
+    updatedAt: integer('updated_at').notNull().default(now),
+  },
+  (t) => [
+    index('scrim_requests_status_idx').on(t.status, t.createdAt),
+    index('scrim_requests_event_idx').on(t.eventId),
+  ],
+);
+
+/* ------------------------------------------------------------------ *
  * Events — clan happenings (war nights, tournaments, movie nights).
  * Authorised members create them; the bot mirrors each to a native Discord
  * scheduled event AND an announcement message, tracked by the id columns so
