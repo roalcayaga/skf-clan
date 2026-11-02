@@ -160,7 +160,7 @@ export default function HomePulse() {
           <span>SKF PULSE</span>
           <h2>Qué está pasando en el Templo</h2>
         </div>
-        <Link to="/competitive">SkF Arena →</Link>
+        <Link to="/competitive">SkF Dojo →</Link>
       </header>
 
       <div className="pulse-grid">
