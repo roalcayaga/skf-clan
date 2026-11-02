@@ -150,13 +150,13 @@ export default function MemberDetail({
     Promise.all([
       load(),
       api.get<{ ranks: Rank[] }>('/ranks').then(({ ranks }) => setRanks(ranks)),
-      managementMode && managementMode && can('roles.assign')
+      managementMode && can('roles.assign')
         ? api.get<{ roles: Role[] }>('/roles/assignable').then(({ roles }) => setAssignable(roles))
         : Promise.resolve(),
-      managementMode && managementMode && can('medals.award')
+      managementMode && can('medals.award')
         ? api.get<{ medals: MedalDef[] }>('/medals').then(({ medals }) => setMedalCatalog(medals))
         : Promise.resolve(),
-      managementMode && managementMode && can('warrecords.award')
+      managementMode && can('warrecords.award')
         ? api
             .get<{ warRecords: WarRecordDef[] }>('/warrecords')
             .then(({ warRecords }) => setWarRecordCatalog(warRecords))
@@ -396,7 +396,7 @@ export default function MemberDetail({
             </div>
           )}
 
-          {(managementMode && can('roster.edit') || managementMode && can('roster.remove')) && (
+          {(managementMode && (can('roster.edit') || can('roster.remove'))) && (
             <div className="mab-group">
               <span className="mab-label">Status</span>
               <select
